@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -914,6 +914,10 @@ nav{display:none!important}
       </div>
       <div class="fg"><label>비밀번호 확인</label>
         <input type="password" id="riPw2" placeholder="비밀번호 확인" autocomplete="new-password">
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin:8px 0 6px">
+        <input type="checkbox" id="riAgree" style="width:16px;height:16px;margin-top:3px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="riAgree" style="font-size:12px;color:var(--muted);line-height:1.7;cursor:pointer"><a href="https://bytenode109.vercel.app/terms.html" target="_blank" style="color:var(--accent);text-decoration:underline">이용약관</a> 및 <a href="https://bytenode109.vercel.app/privacy.html" target="_blank" style="color:var(--accent);text-decoration:underline">개인정보 처리방침</a>에 동의합니다. (필수)</label>
       </div>
       <button class="btn btn-primary" id="riBtn">회원가입</button>
       <div class="login-err" id="riErr"></div>
@@ -2243,6 +2247,8 @@ $('riPw2').addEventListener('keydown',  e=>{ if(e.key==='Enter') doRegister(); }
 
 async function doRegister() {
   $('riErr').textContent = '';
+  const agreeEl = $('riAgree');
+  if (agreeEl && !agreeEl.checked) { $('riErr').textContent = '이용약관 및 개인정보 처리방침에 동의해주세요.'; return; }
   const username    = $('riId').value.trim();
   const displayName = $('riName').value.trim();
   const password    = $('riPw').value;
