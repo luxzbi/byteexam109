@@ -656,7 +656,15 @@ nav{display:none!important}
 .aig-diff-preset-btn{flex:1;min-width:130px;padding:10px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:rgba(255,255,255,.55);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-align:left}
 .aig-diff-preset-btn:hover{border-color:rgba(167,139,250,.5);color:var(--text)}
 .aig-diff-preset-btn.active{border-color:var(--accent);background:rgba(108,99,255,.15);color:var(--accent2)}
-@media(max-width:900px){.aig-region-grid{grid-template-columns:repeat(4,1fr)}.aig-cat-group{flex-direction:column}.aig-cat-btn{min-width:0}}
+.aig-subject-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
+.aig-subject-btn{padding:9px 4px;border-radius:8px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:rgba(255,255,255,.5);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4}
+.aig-subject-btn .sb-icon{font-size:16px;display:block;margin-bottom:2px}
+.aig-subject-btn:hover{border-color:rgba(167,139,250,.5);color:var(--text)}
+.aig-subject-btn.active{border-color:var(--accent);background:rgba(108,99,255,.15);color:var(--accent2)}
+.aig-subject-custom{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.aig-subject-custom input,.aig-subject-custom textarea{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;padding:7px 10px;resize:vertical}
+.aig-subject-custom textarea{min-height:56px}
+@media(max-width:900px){.aig-region-grid{grid-template-columns:repeat(4,1fr)}.aig-cat-group{flex-direction:column}.aig-cat-btn{min-width:0}.aig-subject-grid{grid-template-columns:repeat(5,1fr)}}
 
 /* PC-only / Mobile-only */
 .aig-pc-only{} /* shown by default */
@@ -1455,6 +1463,27 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
             <button class="aig-submode-btn" id="suneungCurr2015Btn" onclick="selectSuneungCurriculum('2015개정')">2015 개정</button>
           </div>
           <div style="margin-top:8px;font-size:12px;color:var(--fg3)">시험 범위는 <strong>수능 모의고사</strong>로 자동 설정됩니다.</div>
+        </div>
+        <!-- 과목 선택 (내신·수능 공통) -->
+        <div id="aigSubjectWrap" style="display:none">
+          <div class="aig-section-sep">과목 선택</div>
+          <div class="aig-subject-grid">
+            <button class="aig-subject-btn" data-subj="국어" onclick="selectAigSubject('국어')"><span class="sb-icon">📖</span>국어</button>
+            <button class="aig-subject-btn" data-subj="수학" onclick="selectAigSubject('수학')"><span class="sb-icon">📐</span>수학</button>
+            <button class="aig-subject-btn" data-subj="영어" onclick="selectAigSubject('영어')"><span class="sb-icon">🔤</span>영어</button>
+            <button class="aig-subject-btn" data-subj="역사" onclick="selectAigSubject('역사')"><span class="sb-icon">🏛️</span>한국사</button>
+            <button class="aig-subject-btn" data-subj="사회" onclick="selectAigSubject('사회')"><span class="sb-icon">🌏</span>사회</button>
+            <button class="aig-subject-btn" data-subj="과학" onclick="selectAigSubject('과학')"><span class="sb-icon">🔬</span>과학</button>
+            <button class="aig-subject-btn" data-subj="기술가정" onclick="selectAigSubject('기술가정')"><span class="sb-icon">🔧</span>기술가정</button>
+            <button class="aig-subject-btn" data-subj="도덕" onclick="selectAigSubject('도덕')"><span class="sb-icon">⚖️</span>도덕·윤리</button>
+            <button class="aig-subject-btn" data-subj="정보" onclick="selectAigSubject('정보')"><span class="sb-icon">💻</span>정보</button>
+            <button class="aig-subject-btn" data-subj="기타" onclick="selectAigSubject('기타')"><span class="sb-icon">✏️</span>기타</button>
+          </div>
+          <!-- 기타 선택 시 입력 칸 -->
+          <div id="aigSubjectCustomWrap" class="aig-subject-custom" style="display:none">
+            <input type="text" id="aigSubjectNameInput" placeholder="과목명 (예: 체육, 음악, 미술...)">
+            <textarea id="aigSubjectDescInput" placeholder="과목 특성 설명 (예: 이론+실기 혼합, 용어 암기 중심, 악보 해석 문항 포함 등)"></textarea>
+          </div>
         </div>
       </div>
 
@@ -3160,6 +3189,190 @@ const DIFF_SPEC = {
 /* 하위 호환용 */
 const DIFF_DESC = Object.fromEntries(Object.entries(DIFF_SPEC).map(([k,v])=>[k,`논리 전환 ${v.transitions} | 융합 개념 ${v.concepts}`]));
 
+/* ── 과목별 출제 지시 블록 ─────────────────────────────────────────────── */
+const SUBJECT_SPEC = {
+  '국어': `<subject_directive>
+【과목: 국어】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 비문학(독서) 지문 출제 원칙:
+  - 300~900자 지문을 [PASSAGE:제목(선택)\\n지문내용] 형식으로 text= 필드에 삽입
+  - 지문 1개 → 3~5문제 세트 (첫 문항 text=에 지문 삽입, 이후 문항은 "윗글을 읽고 답하시오." 발문)
+  - 문항 유형: 중심내용·주제, 세부정보 파악, 상황 적용, 어휘·관용표현, 서술방식·구조 파악
+
+▶ 문학 지문 출제 원칙:
+  - 시·소설·수필·희곡 발췌를 [PASSAGE:작품명·작가\\n본문] 형식으로 삽입
+  - 두 작품 비교 시: [PASSAGE:(가) 작품명\\n본문\\n\\n(나) 작품명\\n본문] 형식
+  - 1~2개 작품 → 3~5문제 세트
+  - 문항 유형: 표현법·운율, 화자/서술자 파악, 시어·구절 의미, 외적 준거 적용
+
+▶ 문법·언어 독립 문항:
+  - 짧은 예문 제시형 독립 문항 (지문 없이 구성 가능)
+  - 맞춤법·품사·문장성분·단어형성법·음운변동 등
+
+▶ 서술형 포함 시:
+  - 감상·비교분석·논술·조건 서술 형식
+  - explain= 필드에 단계별 채점 기준 명시
+
+⚠️ 국어는 지문 독해·감상·비판적 사고가 핵심. 수학 계산식 투입 금지.
+⚠️ 지문 없는 독해 문제 출제 금지 — 반드시 [PASSAGE:] 지문 제시 후 문항 연결.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '수학': `<subject_directive>
+【과목: 수학】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 수식 표현 원칙:
+  - 모든 수학 기호·수식은 KaTeX 필수: 인라인 $수식$, 블록 $$수식$$
+  - 분수: $\\frac{a}{b}$ / 제곱근: $\\sqrt{x}$ / 적분: $\\int_a^b f(x)dx$ / 극한: $\\lim_{x\\to\\infty}$
+  - 수능 단답형 문제 포함 시: "답은 자연수(0~999 정수)로 구하시오." 발문
+
+▶ 그래프·좌표 삽입:
+  - 함수 그래프 필요 시 [COORD:] 태그 활용 (좌표 명시)
+  - 또는 발문 내 "그래프를 참고하여" + 조건 텍스트로 그래프 묘사 가능
+
+▶ 표 삽입: [TABLE:헤더1|헤더2\\n값1|값2] 형식 (확률분포표·수열 등)
+
+▶ 서술형·증명형:
+  - 단계별 풀이 과정 서술 필수 (explain= 필드에 표준 풀이·부분점수 기준)
+  - 증명형: "풀이 과정을 서술하시오" 발문
+
+⚠️ 수식 없이 텍스트만으로 수학적 표현하는 것 금지.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '영어': `<subject_directive>
+【과목: 영어】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 독해 단독형 (수능 18~39번 스타일, 1지문 1문제):
+  - 영어 지문 130~220 words를 [PASSAGE:\\n영어지문] 형식으로 삽입 (제목 없이 지문만)
+  - 자연스러운 현지 영어 산문 (인문·사회·과학·예술 학술 소재 중심)
+  - 문항 유형: purpose / mood / claim / main idea / topic / title / T-F / grammar / vocabulary / blank / insertion / ordering / summary
+
+▶ 장문 세트형 (수능 40~45번 스타일, 1지문 2~4문제):
+  - 250~500 words 장문을 [PASSAGE:\\n영어장문지문] 형식으로 삽입
+  - 이야기(narrative) 지문 시: (A)/(B)/(C) 단락 분할 제시 가능
+  - 세트 문항 유형: 순서배열 + 지칭추론 + 내용일치 or 제목+어휘 조합
+
+▶ 어법·어휘 독립 문항:
+  - 짧은 문장 또는 선지 내 오류 찾기 (지문 없이 독립 구성 가능)
+
+▶ 서술형 포함 시:
+  - 우리말→영어 영작, 요약문(summary) 완성, 조건 영작
+  - 지문 기반 서술형: 지문의 [PASSAGE:] 재활용
+
+⚠️ 영어 지문은 반드시 자연스러운 현지 영어로 작성. 번역투·한국식 영어 금지.
+⚠️ 발문: "다음 글을 읽고 물음에 답하시오." 또는 "Read the passage and answer."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '역사': `<subject_directive>
+【과목: 한국사】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 사료·자료 제시형 (핵심 유형):
+  - 역사 문헌·조서·상소문 등을 [PASSAGE:자료 출처 설명\\n사료 내용] 형식으로 삽입
+  - 1개 사료 → 2~3문제 세트
+  - 발문: "(가) 자료를 분석한 것으로 가장 적절한 것은?" 형식 활용
+
+▶ 연표·순서형:
+  - [TABLE:사건|연도|핵심내용\\n갑오개혁|1894|..] 형식으로 연표 제시
+  - 역사적 사건 선후관계·인과관계 파악 문항
+
+▶ 지도·유물 묘사형:
+  - 사진·지도 대신 텍스트로 묘사: "다음 유물은 ~~형태로, ~~시대에 제작된..."
+  - "다음 지도에서 ~~가 표시된 지역에 해당하는 것은?" 발문 + 지역 텍스트 묘사
+
+⚠️ 역사적 사실(연도·인물·사건)의 정확성 최우선. 오류 허용 불가.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '사회': `<subject_directive>
+【과목: 통합사회】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 자료 분석형:
+  - 통계·그래프·지도 자료를 [TABLE:항목|값\\n국가A|수치] 형식으로 제시
+  - 발문: "다음 자료를 분석한 것으로 옳은 것은?" 형식
+  - 1개 자료 → 2~3문제 세트
+
+▶ 개념 이해형: 인권·복지·문화·환경·경제 핵심 개념 독립 문항
+▶ 사례 적용형: 구체적 상황 제시 후 적절한 개념·원칙 적용 문항
+▶ ᄀᄂᄃ 보기형 자주 활용 (정오 판단 조합 선택)
+
+▶ 지리+역사+사회+윤리 통합 과목 특성 반영.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '과학': `<subject_directive>
+【과목: 통합과학】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 실험·자료 제시형 (핵심 유형):
+  - 실험 설계·조건·결과를 [TABLE:조건|결과\\n실험1|값] 형식으로 제시
+  - 발문: "다음 실험 결과를 분석한 것으로 옳은 것은?" 형식
+  - 1개 실험 자료 → 2~3문제 세트
+
+▶ 그래프 분석형:
+  - 실험 결과 그래프를 [COORD:] 또는 [TABLE:x|y\\n값|값] 형식으로 표현
+  - x축·y축 단위·레이블 명확히 제시
+
+▶ 계산형:
+  - 물리·화학 공식 계산: KaTeX 수식 ($F=ma$, $PV=nRT$ 등)
+
+▶ 화학 구조식: [SMILES:분자식] 활용 가능, 간단한 것은 텍스트(CH₄, H₂O)로 표기
+▶ 물리+화학+생명+지구 4개 영역 고르게 출제
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '기술가정': `<subject_directive>
+【과목: 기술·가정】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 기술 영역: 제조·건설·수송·통신·에너지·생명기술·발명 핵심 개념
+  - 기술 시스템 순서(투입→과정→산출→피드백) [TABLE:] 또는 텍스트로 표현
+  - 도면·설계: 3면도 묘사 문항 시 텍스트로 형상 설명
+
+▶ 가정 영역: 식품·영양·의복·주거·소비자·가족·보육 핵심 개념
+  - 영양성분표·식품라벨: [TABLE:영양소|함량\\n단백질|20g] 형식
+  - 가족관계도·생애주기: [TABLE:] 또는 텍스트 묘사
+
+▶ 서술형: 도면 특징 서술, 기술 시스템 요소 설명, 영양소 기능 서술
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '도덕': `<subject_directive>
+【과목: 도덕·윤리】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 사상가·입장 제시형 (핵심 유형):
+  - 윤리 사상가의 입장을 [PASSAGE:사상가명·학파\\n핵심 주장 요약] 형식으로 삽입
+  - 발문: "갑의 입장에서 을의 주장을 평가한 것으로 가장 적절한 것은?"
+  - 1~2개 사상 제시 → 2~4문제 세트
+
+▶ 비교형: (가)(나) 두 입장 대비 구조 — 칸트/공리주의/롤스/노직/덕윤리/유교/불교/도가 등
+▶ 사례 적용형: 윤리적 딜레마 상황 제시 → 특정 이론 적용 문항
+▶ 논증형: 전제1·전제2 → 결론의 타당성 판단 문항
+▶ 서술·논술형: 특정 입장에서 문제 논증, 자기 견해 표명
+
+⚠️ 사상가 명칭·학파·핵심 주장의 정확성 최우선.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '정보': `<subject_directive>
+【과목: 정보·컴퓨팅】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 코드·의사코드형 (핵심 유형):
+  - 파이썬 코드 또는 의사코드를 [PASSAGE:Python\\ncode here] 형식으로 삽입
+  - 발문: "다음 코드를 실행했을 때 출력 결과는?" 또는 "빈칸에 들어갈 코드는?"
+  - 1개 코드 → 1~2문제 (실행결과·코드완성·오류수정)
+
+▶ 순서도·알고리즘형:
+  - 순서도를 텍스트로 묘사 또는 [TABLE:단계|내용\\n1|시작] 형식
+  - 알고리즘 단계별 변수 값 추적 문항
+
+▶ 자료구조형:
+  - 배열·스택·큐 등 상태 변화: [TABLE:인덱스|값\\n0|10] 형식
+▶ 계산형: 2진수·16진수 변환, 논리 연산 (AND/OR/NOT/XOR)
+▶ 개념형: 하드웨어·소프트웨어·네트워크·정보보안·AI 핵심 개념
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`
+};
+
 function buildPrompt() {
   const isSuneung  = _aigCategory === '수능';
   const isLicense  = _aigCategory === '자격증';
@@ -3234,6 +3447,22 @@ function buildPrompt() {
     catLabel = '수능';
   } else if (_aigCategory === '자격증') {
     catLabel = '자격증 및 기타 시험';
+  }
+
+  /* 과목 읽기 */
+  const subject     = _aigSubject || '';
+  const subjName    = subject === '기타' ? (_aigSubjectCustomName || '기타 과목') : subject;
+  const subjDesc    = subject === '기타' ? _aigSubjectCustomDesc : '';
+
+  /* 과목 레이블을 catLabel에 추가 */
+  if (subject) catLabel += ` | 과목: ${subjName}`;
+
+  /* 과목별 출제 지시 블록 */
+  let subjectBlock = '';
+  if (subject && subject !== '기타' && SUBJECT_SPEC[subject]) {
+    subjectBlock = `\n${SUBJECT_SPEC[subject]}`;
+  } else if (subject === '기타' && subjName) {
+    subjectBlock = `\n<subject_directive>\n【과목: ${subjName}】\n${subjDesc ? `▸ 과목 특성: ${subjDesc}\n` : ''}▸ 이 과목의 실제 시험지 형식에 맞게 적절한 자료(표·그래프·지문 등)를 활용하여 출제하십시오.\n</subject_directive>`;
   }
 
   /* 카테고리별 추가 지시 블록 */
@@ -3315,7 +3544,7 @@ ${objOnly ? `
 ▸ 타 학년 선행 개념은 출제 범위에 명시되지 않는 한 절대 사용 금지입니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </exam_specification>
-${categoryBlock}
+${categoryBlock}${subjectBlock}
 <autonomous_research_directive>
 ⚠️ 즉각 문항을 생성하지 마십시오. 반드시 아래 순서(탐색-계획-실행)를 따르십시오.
 
@@ -4655,6 +4884,9 @@ let _aigCategory   = '';   /* '내신' | '수능' | '자격증' */
 let _aigSubMode    = '';   /* '지역별' | '난이도유형별' | '모의고사대비' */
 let _aigRegion     = '';   /* '서울' | '경기' | ... */
 let _aigDiffPreset = '';   /* 난이도유형별 선택 시 미리 선택된 난이도 */
+let _aigSubject    = '';   /* '국어'|'수학'|'영어'|'역사'|'사회'|'과학'|'기술가정'|'도덕'|'정보'|'기타' */
+let _aigSubjectCustomName = '';
+let _aigSubjectCustomDesc = '';
 let _aigSuneungMode = 'normal'; /* 수능 모드: 'normal' | 'suneung' */
 
 function aigTotalSteps() { return isMobile() ? 5 : 4; }
@@ -4671,11 +4903,28 @@ function selectAigCategory(cat) {
   $('aigSubModeWrap').style.display = cat === '내신' ? '' : 'none';
   $('aigRegionWrap').style.display = 'none';
   $('aigSuneungCurriculumWrap').style.display = cat === '수능' ? '' : 'none';
+  $('aigSubjectWrap').style.display = (cat === '내신' || cat === '수능') ? '' : 'none';
   document.querySelectorAll('.aig-submode-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.aig-region-btn').forEach(b => b.classList.remove('active'));
   /* 수능 교육과정 기본값 복원 */
   if (cat === '수능') selectSuneungCurriculum(_aigSuneungCurriculum || '2022개정');
 }
+
+function selectAigSubject(subj) {
+  _aigSubject = subj;
+  document.querySelectorAll('.aig-subject-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.aig-subject-btn').forEach(b => {
+    if (b.dataset.subj === subj) b.classList.add('active');
+  });
+  $('aigSubjectCustomWrap').style.display = subj === '기타' ? '' : 'none';
+  if (subj !== '기타') { _aigSubjectCustomName = ''; _aigSubjectCustomDesc = ''; }
+}
+/* 기타 입력 변경 시 즉시 반영 */
+document.addEventListener('DOMContentLoaded', () => {
+  const ni = $('aigSubjectNameInput'), di = $('aigSubjectDescInput');
+  if (ni) ni.addEventListener('input', () => { _aigSubjectCustomName = ni.value.trim(); });
+  if (di) di.addEventListener('input', () => { _aigSubjectCustomDesc = di.value.trim(); });
+});
 
 let _aigSuneungCurriculum = '2022개정';
 function selectSuneungCurriculum(val) {
