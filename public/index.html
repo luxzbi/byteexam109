@@ -12,7 +12,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- SmilesDrawer: MIT License, https://github.com/reymond-group/smilesDrawer -->
 <script src="https://unpkg.com/smiles-drawer@2.1.7/dist/smiles-drawer.min.js"></script>
-<!-- GeoGebra는 사용 시 lazy-load -->
 <style>
 /* ══ RESET ══ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -674,25 +673,67 @@ nav{display:none!important}
   .aig-split{flex-direction:column}
 }
 
-/* GeoGebra 모달 */
+/* 자체 그래프 편집기 모달 */
 #ggbOverlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
 #ggbOverlay.open{display:flex}
-#ggbPanel{background:#1a1a26;border-radius:14px;box-shadow:0 32px 96px rgba(0,0,0,.9);display:flex;flex-direction:column;overflow:hidden;max-width:calc(100vw - 32px);max-height:calc(100vh - 40px)}
-.ggb-hdr{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;background:#111118}
-.ggb-hdr h3{font-size:13px;font-weight:700;color:var(--text);flex:1}
-.ggb-hdr select{padding:4px 8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer}
-.ggb-hdr select option{background:#1a1a26}
-#ggbLoadMsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e0e1a;gap:12px;font-size:13px;color:rgba(255,255,255,.4);z-index:1;pointer-events:none}
-.ggb-spinner{width:32px;height:32px;border:3px solid rgba(108,99,255,.2);border-top-color:#6c63ff;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#ggb-container{position:relative;flex-shrink:0}
+#ggbPanel{background:#1a1a26;border-radius:14px;box-shadow:0 32px 96px rgba(0,0,0,.9);display:flex;flex-direction:column;overflow:hidden;max-width:calc(100vw - 32px);max-height:calc(100vh - 40px);width:780px}
+.ggb-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;background:#111118}
+.ggb-hdr h3{font-size:13px;font-weight:700;color:var(--text);flex:1;margin:0}
+.graph-tab-btn{padding:4px 13px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;transition:all .15s}
+.graph-tab-btn.active{background:rgba(108,99,255,.25);border-color:rgba(108,99,255,.5);color:#a78bfa}
+.graph-inner{display:flex;flex:1;min-height:0;overflow:hidden}
+#graphCanvas2d,#graphCanvas3d{display:block;cursor:crosshair;flex-shrink:0}
+.graph-ctrl-panel{width:170px;flex-shrink:0;background:#111118;border-left:1px solid rgba(255,255,255,.07);padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:0}
+.graph-ctrl-section{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.graph-ctrl-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.graph-ctrl-input{width:100%;padding:5px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--text);font-size:11px;font-family:inherit;box-sizing:border-box;outline:none}
+.graph-ctrl-input:focus{border-color:var(--accent)}
+.graph-ctrl-btn{width:100%;padding:5px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:rgba(255,255,255,.5);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;text-align:center}
+.graph-ctrl-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.graph-ctrl-sep{height:1px;background:rgba(255,255,255,.07);margin:6px 0;flex-shrink:0}
+.graph-ctrl-hint{font-size:9px;color:rgba(255,255,255,.2);line-height:1.7}
+.g3d-shape-btn.active{background:rgba(108,99,255,.22)!important;border-color:rgba(108,99,255,.5)!important;color:#a78bfa!important}
 .ggb-foot{display:flex;align-items:center;gap:14px;padding:9px 16px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;background:#111118;flex-wrap:wrap}
 .ggb-foot label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
-.ggb-foot input[type=range]{width:80px;accent-color:var(--accent);vertical-align:middle}
-.ggb-foot input[type=number]{width:58px;padding:3px 6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--text);font-size:12px;text-align:center;font-family:inherit}
+.ggb-foot input[type=number]{width:60px;padding:3px 6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--text);font-size:12px;text-align:center;font-family:inherit}
 #ggbInsertBtn{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
 #ggbInsertBtn:hover{background:#5b53ee}
-#ggbInsertBtn:disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed}
+/* 라이트모드: AI 위자드 패널 */
+[data-theme="light"] #aiGenPanel{background:#fff;border-top-color:#ddd}
+[data-theme="light"] .aig-header{background:#f6f6fa;border-bottom-color:#e0e0e8}
+[data-theme="light"] .aig-step-count-text{color:rgba(0,0,0,.35)}
+[data-theme="light"] .aig-dot{background:rgba(0,0,0,.12)}
+[data-theme="light"] .aig-dot-line{background:rgba(0,0,0,.08)}
+[data-theme="light"] .aig-progress-wrap{background:rgba(0,0,0,.06)}
+[data-theme="light"] .aig-panel .fg label{color:rgba(0,0,0,.45)}
+[data-theme="light"] .aig-panel .fg input,[data-theme="light"] .aig-panel .fg select,[data-theme="light"] .aig-panel .fg textarea{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#111}
+[data-theme="light"] .aig-panel .fg input::placeholder,[data-theme="light"] .aig-panel .fg textarea::placeholder{color:rgba(0,0,0,.3)}
+[data-theme="light"] .aig-panel .fg select option{background:#fff;color:#111}
+[data-theme="light"] .aig-mode-btn{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.4)}
+[data-theme="light"] .aig-mode-btn.active{background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.3);color:var(--accent)}
+[data-theme="light"] .aig-exam-desc{color:var(--accent)}
+[data-theme="light"] .aig-split-divider{background:rgba(0,0,0,.08)}
+[data-theme="light"] .prompt-preview{background:rgba(0,0,0,.04)!important;border-color:rgba(0,0,0,.1)!important;color:#111!important}
+[data-theme="light"] .aig-step-dots .aig-dot{background:rgba(0,0,0,.12)}
+/* 라이트모드: 그래프 편집기 */
+[data-theme="light"] #ggbPanel{background:#f4f4f9}
+[data-theme="light"] .ggb-hdr{background:#ebebf2;border-bottom-color:#ddd}
+[data-theme="light"] .ggb-foot{background:#ebebf2;border-top-color:#ddd}
+[data-theme="light"] .graph-ctrl-panel{background:#ebebf2;border-left-color:#ddd}
+[data-theme="light"] .graph-ctrl-label{color:rgba(0,0,0,.35)}
+[data-theme="light"] .graph-ctrl-input{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:#111}
+[data-theme="light"] .graph-ctrl-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.5)}
+[data-theme="light"] .graph-ctrl-btn:hover{background:rgba(0,0,0,.09);color:#111}
+[data-theme="light"] .graph-ctrl-sep{background:rgba(0,0,0,.09)}
+[data-theme="light"] .graph-ctrl-hint{color:rgba(0,0,0,.2)}
+[data-theme="light"] .graph-tab-btn{border-color:rgba(0,0,0,.12);color:rgba(0,0,0,.4)}
+[data-theme="light"] .graph-tab-btn.active{background:rgba(108,99,255,.1);border-color:rgba(108,99,255,.35);color:var(--accent)}
+[data-theme="light"] .ggb-foot input[type=number]{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#111}
+/* 라이트모드: 기타 다크 고정값 */
+[data-theme="light"] #rpApplyBtn:disabled{background:rgba(0,0,0,.08);color:rgba(0,0,0,.28)}
+[data-theme="light"] #rpStatus{color:rgba(0,0,0,.35)}
+[data-theme="light"] .rp-sep{background:rgba(0,0,0,.07)}
+[data-theme="light"] #rpGraphBtn{background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.2)}
 
 /* 오른쪽 패널 그래프 버튼 */
 #rpGraphBtn{width:100%;margin-top:6px;padding:7px;background:rgba(108,99,255,.12);color:#a78bfa;border:1px solid rgba(108,99,255,.25);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
@@ -791,7 +832,9 @@ nav{display:none!important}
   .panel-resize{display:none}
   /* GGB 모달 */
   #ggbPanel{width:calc(100vw - 8px)!important;max-width:none}
-  #ggb-container{width:100%!important;height:min(60vw,360px)!important}
+  .graph-inner{flex-direction:column}
+  #graphCanvas2d,#graphCanvas3d{width:100%!important;height:50vw!important;max-height:340px}
+  .graph-ctrl-panel{width:100%!important;border-left:none;border-top:1px solid rgba(255,255,255,.07);max-height:110px;flex-direction:row;flex-wrap:wrap;column-gap:8px}
 }
 
 /* ═══ 태블릿 레이아웃 (721px–900px) ═══ */
@@ -1676,32 +1719,85 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
 
 </div><!-- /app -->
 
-<!-- ══ GeoGebra 그래프 모달 ══ -->
+<!-- ══ 자체 그래프 편집기 모달 ══ -->
 <div id="ggbOverlay" onclick="if(event.target===this)closeGgbModal()">
   <div id="ggbPanel">
     <div class="ggb-hdr">
       <h3>📊 그래프 편집기</h3>
-      <select id="ggbAppSelect" onchange="initGeoGebra(this.value)">
-        <option value="graphing">Graphing</option>
-        <option value="geometry">Geometry</option>
-        <option value="3d">3D</option>
-      </select>
+      <div style="display:flex;gap:4px">
+        <button class="graph-tab-btn active" id="graphTabBtn2d" onclick="switchGraphTab('2d')">좌표평면</button>
+        <button class="graph-tab-btn" id="graphTabBtn3d" onclick="switchGraphTab('3d')">3D</button>
+      </div>
+      <div style="flex:1"></div>
       <button class="tb-btn" onclick="closeGgbModal()" style="padding:3px 10px;font-size:13px">✕</button>
     </div>
-    <div id="ggb-container" style="width:760px;height:480px">
-      <div id="ggbLoadMsg">
-        <div class="ggb-spinner"></div>
-        <span>GeoGebra 로딩 중…</span>
+    <!-- 2D 좌표평면 -->
+    <div id="graphTab2d" class="graph-inner">
+      <canvas id="graphCanvas2d" width="600" height="440"></canvas>
+      <div class="graph-ctrl-panel">
+        <div class="graph-ctrl-section">
+          <div class="graph-ctrl-label">📈 함수 (y=)</div>
+          <input id="g2dFnInput" class="graph-ctrl-input" placeholder="sin(x)" onkeydown="if(event.key==='Enter')g2dAddFn()">
+          <div style="display:flex;align-items:center;gap:4px;margin:2px 0">
+            <input type="color" id="g2dFnColor" value="#6c63ff" style="width:22px;height:22px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0">
+            <button class="graph-ctrl-btn" style="flex:1" onclick="g2dAddFn()">+ 추가</button>
+          </div>
+          <div id="g2dFnList"></div>
+        </div>
+        <div class="graph-ctrl-sep"></div>
+        <div class="graph-ctrl-section">
+          <div class="graph-ctrl-label">📌 점 추가</div>
+          <div style="display:flex;gap:3px">
+            <input id="g2dPtX" class="graph-ctrl-input" placeholder="x" type="number" style="flex:1">
+            <input id="g2dPtY" class="graph-ctrl-input" placeholder="y" type="number" style="flex:1">
+          </div>
+          <input id="g2dPtLabel" class="graph-ctrl-input" placeholder="레이블 (선택)">
+          <button class="graph-ctrl-btn" onclick="g2dAddPt()">+ 추가</button>
+          <div id="g2dPtList"></div>
+        </div>
+        <div class="graph-ctrl-sep"></div>
+        <div style="display:flex;gap:4px">
+          <button class="graph-ctrl-btn" style="flex:1" onclick="G2D.clear();g2dRefreshLists()">초기화</button>
+          <button class="graph-ctrl-btn" style="flex:1;color:#a78bfa;border-color:rgba(108,99,255,.3)" onclick="G2D.resetView()">뷰↺</button>
+        </div>
+        <div class="graph-ctrl-hint" style="margin-top:8px">드래그: 이동<br>휠: 확대/축소</div>
+      </div>
+    </div>
+    <!-- 3D -->
+    <div id="graphTab3d" class="graph-inner" style="display:none">
+      <canvas id="graphCanvas3d" width="600" height="440"></canvas>
+      <div class="graph-ctrl-panel">
+        <div class="graph-ctrl-section">
+          <div class="graph-ctrl-label">🔷 도형</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="cube" onclick="g3dShape('cube')">정육면체</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="sphere" onclick="g3dShape('sphere')">구</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="cone" onclick="g3dShape('cone')">원뿔</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="cylinder" onclick="g3dShape('cylinder')">원기둥</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="pyramid" onclick="g3dShape('pyramid')">사각뿔</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="tetrahedron" onclick="g3dShape('tetrahedron')">삼각뿔</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="prism" onclick="g3dShape('prism')">삼각기둥</button>
+            <button class="g3d-shape-btn graph-ctrl-btn" data-shape="axes" onclick="g3dShape('axes')">축만</button>
+          </div>
+        </div>
+        <div class="graph-ctrl-sep"></div>
+        <div class="graph-ctrl-section">
+          <div class="graph-ctrl-label">📐 z=f(x,z)</div>
+          <input id="g3dFnInput" class="graph-ctrl-input" placeholder="sin(sqrt(x*x+z*z))">
+          <button class="graph-ctrl-btn" onclick="g3dSetFn()">그리기</button>
+        </div>
+        <div class="graph-ctrl-sep"></div>
+        <button class="graph-ctrl-btn" onclick="G3D.reset()">뷰 초기화</button>
+        <div class="graph-ctrl-hint" style="margin-top:8px">드래그: 회전<br>휠: 확대/축소</div>
       </div>
     </div>
     <div class="ggb-foot">
       <label>삽입 너비: <input type="number" id="ggbDisplayW" value="320" min="120" max="740" step="20"> px</label>
       <div style="flex:1"></div>
-      <button id="ggbInsertBtn" disabled onclick="insertGgbToQuestion()">시험지에 삽입</button>
+      <button id="ggbInsertBtn" onclick="insertGraphToQuestion()">시험지에 삽입</button>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 
@@ -4921,91 +5017,408 @@ window.addEventListener('resize', () => {
   fitCanvasZoom();
 });
 
-/* ── GeoGebra 그래프 모달 ── */
-let _ggbReady = false;
-let _ggbApi   = null;
+/* ── 자체 그래프 편집기 ── */
+let _graphTabActive = "2d";
+let _graphInit2d = false, _graphInit3d = false;
 
-let _ggbScriptLoaded = false;
+const G2D = {
+  canvas:null, ctx:null, ox:300, oy:220, scale:40,
+  fns:[], pts:[], drag:false, dragLast:null,
+
+  init() {
+    this.canvas = document.getElementById("graphCanvas2d");
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext("2d");
+    this.ox = this.canvas.width / 2;
+    this.oy = this.canvas.height / 2;
+    this._bind(); this.render();
+  },
+
+  _bind() {
+    const c = this.canvas;
+    c.addEventListener("mousedown", e => { this.drag=true; this.dragLast={x:e.offsetX,y:e.offsetY}; });
+    c.addEventListener("mousemove", e => {
+      if (!this.drag) return;
+      this.ox += e.offsetX - this.dragLast.x;
+      this.oy += e.offsetY - this.dragLast.y;
+      this.dragLast = {x:e.offsetX, y:e.offsetY};
+      this.render();
+    });
+    c.addEventListener("mouseup", () => this.drag=false);
+    c.addEventListener("mouseleave", () => this.drag=false);
+    c.addEventListener("wheel", e => {
+      e.preventDefault();
+      const f = e.deltaY < 0 ? 1.12 : 0.9;
+      const mx=e.offsetX, my=e.offsetY;
+      this.ox = mx + (this.ox-mx)*f;
+      this.oy = my + (this.oy-my)*f;
+      this.scale *= f;
+      this.render();
+    }, {passive:false});
+  },
+
+  render() {
+    const {canvas,ctx,ox,oy,scale} = this;
+    const W=canvas.width, H=canvas.height;
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = isDark ? "#0e0e1a" : "#f8f8fc";
+    ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.08)";
+    ctx.lineWidth = 1;
+    const sx=((ox%scale)+scale)%scale, sy=((oy%scale)+scale)%scale;
+    for (let x=sx; x<=W; x+=scale) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y=sy; y<=H; y+=scale) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // axes
+    const axC = isDark ? "rgba(255,255,255,.55)" : "rgba(0,0,0,.55)";
+    ctx.strokeStyle = axC; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,H); ctx.stroke();
+    ctx.fillStyle = axC;
+    ctx.beginPath(); ctx.moveTo(W-2,oy); ctx.lineTo(W-9,oy-4); ctx.lineTo(W-9,oy+4); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(ox,2); ctx.lineTo(ox-4,9); ctx.lineTo(ox+4,9); ctx.fill();
+    // ticks
+    const us = scale<20?5:scale<35?2:1;
+    ctx.font = Math.max(9,Math.min(11,scale/4))+"px monospace";
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,.22)" : "rgba(0,0,0,.22)";
+    ctx.fillStyle = isDark ? "rgba(255,255,255,.45)" : "rgba(0,0,0,.5)";
+    ctx.lineWidth = 1; ctx.textAlign="center"; ctx.textBaseline="top";
+    for (let u=Math.ceil(-ox/scale); u<=Math.floor((W-ox)/scale); u+=us) {
+      if (!u) continue;
+      const px=ox+u*scale;
+      ctx.beginPath(); ctx.moveTo(px,oy-4); ctx.lineTo(px,oy+4); ctx.stroke();
+      ctx.fillText(u,px,oy+6);
+    }
+    ctx.textAlign="right"; ctx.textBaseline="middle";
+    for (let u=Math.ceil(-oy/scale); u<=Math.floor((H-oy)/scale); u+=us) {
+      if (!u) continue;
+      const py=oy+u*scale;
+      ctx.beginPath(); ctx.moveTo(ox-4,py); ctx.lineTo(ox+4,py); ctx.stroke();
+      ctx.fillText(-u,ox-7,py);
+    }
+    // axis labels
+    ctx.font="11px monospace"; ctx.fillStyle=axC;
+    ctx.textAlign="left"; ctx.textBaseline="bottom"; ctx.fillText("x",W-7,oy-3);
+    ctx.textAlign="right"; ctx.textBaseline="top"; ctx.fillText("y",ox-3,5);
+    // functions
+    this.fns.forEach(function(f) {
+      ctx.strokeStyle = f.color; ctx.lineWidth = 2; ctx.beginPath();
+      let started=false;
+      for (let px=0; px<=W; px++) {
+        const x=(px-ox)/scale;
+        let y; try { y=f.fn(x); } catch(e) { started=false; continue; }
+        if (!isFinite(y)||Math.abs(y)>1e5) { started=false; continue; }
+        const py=oy-y*scale;
+        if (!started) { ctx.moveTo(px,py); started=true; } else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    });
+    // points
+    this.pts.forEach(function(p) {
+      const px=ox+p.x*scale, py=oy-p.y*scale;
+      ctx.fillStyle="#f472b6";
+      ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
+      if (p.label) {
+        ctx.fillStyle = isDark?"#fff":"#111";
+        ctx.font="10px monospace"; ctx.textAlign="left"; ctx.textBaseline="bottom";
+        ctx.fillText(p.label, px+6, py);
+      }
+    });
+  },
+
+  addFn(expr, color) {
+    let fn;
+    try { fn=new Function("x","with(Math){return "+expr+"}"); fn(0); }
+    catch(e) { alert("식 오류: "+expr); return false; }
+    this.fns.push({expr,color,fn}); this.render(); return true;
+  },
+
+  addPt(x,y,label) { this.pts.push({x,y,label}); this.render(); },
+
+  clear() {
+    this.fns=[]; this.pts=[];
+    this.ox=this.canvas.width/2; this.oy=this.canvas.height/2; this.scale=40;
+    this.render();
+  },
+
+  resetView() { this.ox=this.canvas.width/2; this.oy=this.canvas.height/2; this.scale=40; this.render(); }
+};
+
+const G3D = {
+  canvas:null, ctx:null, rx:22, ry:-40, scale:80,
+  mode:"axes", fnStr:"", drag:false, dragLast:null,
+
+  init() {
+    this.canvas = document.getElementById("graphCanvas3d");
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext("2d");
+    this._bind(); this.render();
+  },
+
+  _bind() {
+    const c=this.canvas;
+    c.addEventListener("mousedown", e => { this.drag=true; this.dragLast={x:e.offsetX,y:e.offsetY}; });
+    c.addEventListener("mousemove", e => {
+      if (!this.drag) return;
+      this.ry += (e.offsetX-this.dragLast.x)*0.5;
+      this.rx += (e.offsetY-this.dragLast.y)*0.5;
+      this.dragLast={x:e.offsetX,y:e.offsetY};
+      this.render();
+    });
+    c.addEventListener("mouseup", () => this.drag=false);
+    c.addEventListener("mouseleave", () => this.drag=false);
+    c.addEventListener("wheel", e => {
+      e.preventDefault();
+      this.scale *= e.deltaY<0?1.1:0.9;
+      this.render();
+    }, {passive:false});
+  },
+
+  proj(x3,y3,z3) {
+    const rx=this.rx*Math.PI/180, ry=this.ry*Math.PI/180;
+    const x1 = x3*Math.cos(ry) + z3*Math.sin(ry);
+    const z1 = -x3*Math.sin(ry) + z3*Math.cos(ry);
+    const y2 = y3*Math.cos(rx) - z1*Math.sin(rx);
+    return { px: this.canvas.width/2 + x1*this.scale, py: this.canvas.height/2 - y2*this.scale };
+  },
+
+  line(x1,y1,z1,x2,y2,z2,color,w) {
+    const p1=this.proj(x1,y1,z1), p2=this.proj(x2,y2,z2);
+    this.ctx.strokeStyle=color; this.ctx.lineWidth=w;
+    this.ctx.beginPath(); this.ctx.moveTo(p1.px,p1.py); this.ctx.lineTo(p2.px,p2.py); this.ctx.stroke();
+  },
+
+  axes() {
+    const L=2.5;
+    this.line(0,0,0,L,0,0,"#ef4444",2);
+    this.line(0,0,0,0,L,0,"#22c55e",2);
+    this.line(0,0,0,0,0,L,"#3b82f6",2);
+    const ctx=this.ctx;
+    const isDark=document.documentElement.getAttribute("data-theme")!=="light";
+    ctx.font="12px monospace";
+    const lx=this.proj(L+0.3,0,0),ly=this.proj(0,L+0.3,0),lz=this.proj(0,0,L+0.3);
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle="#ef4444"; ctx.fillText("x",lx.px,lx.py);
+    ctx.fillStyle="#22c55e"; ctx.fillText("y",ly.px,ly.py);
+    ctx.fillStyle="#3b82f6"; ctx.fillText("z",lz.px,lz.py);
+    const lo=this.proj(0,0,0);
+    ctx.fillStyle=isDark?"rgba(255,255,255,.35)":"rgba(0,0,0,.35)";
+    ctx.font="10px monospace"; ctx.fillText("O",lo.px-10,lo.py);
+    ctx.fillStyle=isDark?"rgba(255,255,255,.25)":"rgba(0,0,0,.25)";
+    ctx.font="9px monospace";
+    for(let i=1;i<=2;i++){
+      const lxi=this.proj(i,0,0); ctx.fillText(i,lxi.px,lxi.py+12);
+      const lyi=this.proj(0,i,0); ctx.fillText(i,lyi.px-12,lyi.py);
+    }
+    const dashC=isDark?"rgba(255,255,255,.12)":"rgba(0,0,0,.12)";
+    ctx.strokeStyle=dashC; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    [[-L,0,0,-0.1,0,0],[0,-L,0,0,-0.1,0],[0,0,-L,0,0,-0.1]].forEach(function(a){
+      const p1=G3D.proj(a[0],a[1],a[2]),p2=G3D.proj(a[3],a[4],a[5]);
+      ctx.beginPath(); ctx.moveTo(p1.px,p1.py); ctx.lineTo(p2.px,p2.py); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  },
+
+  cube() {
+    const v=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+    [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(function(e){
+      G3D.line(v[e[0]][0],v[e[0]][1],v[e[0]][2],v[e[1]][0],v[e[1]][1],v[e[1]][2],"rgba(108,99,255,.8)",1.5);
+    });
+  },
+
+  sphere(r) {
+    r=r||1.5; const N=18;
+    for(let i=0;i<N;i++){
+      const t=i/N*Math.PI*2,t2=(i+1)/N*Math.PI*2;
+      for(let j=0;j<N/2;j++){
+        const p=j/(N/2)*Math.PI,p2=(j+1)/(N/2)*Math.PI;
+        this.line(r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t),r*Math.sin(p2)*Math.cos(t),r*Math.cos(p2),r*Math.sin(p2)*Math.sin(t),"rgba(108,99,255,.35)",1);
+      }
+      for(let j=1;j<9;j++){
+        const p=j/9*Math.PI;
+        this.line(r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t),r*Math.sin(p)*Math.cos(t2),r*Math.cos(p),r*Math.sin(p)*Math.sin(t2),"rgba(108,99,255,.35)",1);
+      }
+    }
+  },
+
+  cone(r,h) {
+    r=r||1.2; h=h||2; const N=24;
+    for(let i=0;i<N;i++){
+      const t=i/N*Math.PI*2,t2=(i+1)/N*Math.PI*2;
+      this.line(r*Math.cos(t),0,r*Math.sin(t),r*Math.cos(t2),0,r*Math.sin(t2),"rgba(108,99,255,.7)",1);
+      this.line(r*Math.cos(t),0,r*Math.sin(t),0,h,0,"rgba(108,99,255,.5)",1);
+    }
+  },
+
+  cylinder(r,h) {
+    r=r||1; h=h||2; const N=24;
+    for(let i=0;i<N;i++){
+      const t=i/N*Math.PI*2,t2=(i+1)/N*Math.PI*2;
+      this.line(r*Math.cos(t),0,r*Math.sin(t),r*Math.cos(t2),0,r*Math.sin(t2),"rgba(108,99,255,.7)",1);
+      this.line(r*Math.cos(t),h,r*Math.sin(t),r*Math.cos(t2),h,r*Math.sin(t2),"rgba(108,99,255,.7)",1);
+      if(i%6===0) this.line(r*Math.cos(t),0,r*Math.sin(t),r*Math.cos(t),h,r*Math.sin(t),"rgba(108,99,255,.4)",1);
+    }
+  },
+
+  pyramid() {
+    const b=[[-1,0,-1],[1,0,-1],[1,0,1],[-1,0,1]],a=[0,2,0];
+    for(let i=0;i<4;i++){
+      this.line(b[i][0],b[i][1],b[i][2],b[(i+1)%4][0],b[(i+1)%4][1],b[(i+1)%4][2],"rgba(108,99,255,.8)",1.5);
+      this.line(b[i][0],b[i][1],b[i][2],a[0],a[1],a[2],"rgba(108,99,255,.6)",1.5);
+    }
+  },
+
+  tetrahedron() {
+    const s=Math.sqrt(2/3)*2;
+    const v=[[0,s,0],[-1,0,-1/Math.sqrt(3)],[1,0,-1/Math.sqrt(3)],[0,0,2/Math.sqrt(3)]];
+    [[0,1],[0,2],[0,3],[1,2],[2,3],[3,1]].forEach(function(e){
+      G3D.line(v[e[0]][0],v[e[0]][1],v[e[0]][2],v[e[1]][0],v[e[1]][1],v[e[1]][2],"rgba(108,99,255,.85)",1.5);
+    });
+  },
+
+  prism() {
+    const r=1,h=1.8;
+    const base=[[0,0,r],[-r*Math.sqrt(3)/2,0,-r/2],[r*Math.sqrt(3)/2,0,-r/2]];
+    const top=base.map(function(p){return [p[0],h,p[2]];});
+    for(let i=0;i<3;i++){
+      this.line(base[i][0],base[i][1],base[i][2],base[(i+1)%3][0],base[(i+1)%3][1],base[(i+1)%3][2],"rgba(108,99,255,.8)",1.5);
+      this.line(top[i][0],top[i][1],top[i][2],top[(i+1)%3][0],top[(i+1)%3][1],top[(i+1)%3][2],"rgba(108,99,255,.8)",1.5);
+      this.line(base[i][0],base[i][1],base[i][2],top[i][0],top[i][1],top[i][2],"rgba(108,99,255,.5)",1.5);
+    }
+  },
+
+  drawFn() {
+    if (!this.fnStr) return;
+    var fn; try { fn=new Function("x","z","with(Math){return "+this.fnStr+"}"); fn(0,0); } catch(e){return;}
+    var N=25,R=2.5,step=R*2/N,c="rgba(108,99,255,.5)";
+    for(var i=0;i<=N;i++) for(var j=0;j<=N;j++){
+      var x=-R+i*step,z=-R+j*step;
+      try{
+        var y=fn(x,z),y2=fn(x+step,z),y3=fn(x,z+step);
+        if(isFinite(y)&&isFinite(y2)) this.line(x,y,z,x+step,y2,z,c,1);
+        if(isFinite(y)&&isFinite(y3)) this.line(x,y,z,x,y3,z+step,c,1);
+      }catch(e){}
+    }
+  },
+
+  render() {
+    const {canvas,ctx}=this;
+    const W=canvas.width,H=canvas.height;
+    const isDark=document.documentElement.getAttribute("data-theme")!=="light";
+    ctx.clearRect(0,0,W,H);
+    ctx.setLineDash([]);
+    ctx.fillStyle=isDark?"#0e0e1a":"#f8f8fc";
+    ctx.fillRect(0,0,W,H);
+    this.axes();
+    if(this.mode==="cube") this.cube();
+    else if(this.mode==="sphere") this.sphere();
+    else if(this.mode==="cone") this.cone();
+    else if(this.mode==="cylinder") this.cylinder();
+    else if(this.mode==="pyramid") this.pyramid();
+    else if(this.mode==="tetrahedron") this.tetrahedron();
+    else if(this.mode==="prism") this.prism();
+    else if(this.mode==="function") this.drawFn();
+    ctx.font="10px sans-serif";
+    ctx.fillStyle=isDark?"rgba(255,255,255,.18)":"rgba(0,0,0,.18)";
+    ctx.textAlign="left"; ctx.textBaseline="bottom";
+    ctx.fillText("드래그: 회전 | 휠: 확대/축소", 8, H-6);
+  },
+
+  reset() { this.rx=22; this.ry=-40; this.scale=80; this.render(); }
+};
 
 function openGgbModal() {
-  $('ggbOverlay').classList.add('open');
-  if (!_ggbApi) {
-    if (!_ggbScriptLoaded) {
-      _ggbScriptLoaded = true;
-      const s = document.createElement('script');
-      s.src = 'https://www.geogebra.org/apps/deployggb.js';
-      s.onload = () => initGeoGebra($('ggbAppSelect').value || 'graphing');
-      document.head.appendChild(s);
-    } else {
-      initGeoGebra($('ggbAppSelect').value || 'graphing');
-    }
+  $("ggbOverlay").classList.add("open");
+  if (_graphTabActive === "2d") {
+    if (!_graphInit2d) { G2D.init(); _graphInit2d=true; }
+    else G2D.render();
+  } else {
+    if (!_graphInit3d) { G3D.init(); _graphInit3d=true; }
+    else G3D.render();
   }
 }
 
-function closeGgbModal() {
-  $('ggbOverlay').classList.remove('open');
+function closeGgbModal() { $("ggbOverlay").classList.remove("open"); }
+
+function switchGraphTab(tab) {
+  _graphTabActive = tab;
+  document.getElementById("graphTab2d").style.display = tab==="2d" ? "flex" : "none";
+  document.getElementById("graphTab3d").style.display = tab==="3d" ? "flex" : "none";
+  document.getElementById("graphTabBtn2d").classList.toggle("active", tab==="2d");
+  document.getElementById("graphTabBtn3d").classList.toggle("active", tab==="3d");
+  if (tab==="2d") { if(!_graphInit2d){G2D.init();_graphInit2d=true;} else G2D.render(); }
+  else { if(!_graphInit3d){G3D.init();_graphInit3d=true;} else G3D.render(); }
 }
 
-function initGeoGebra(appName) {
-  if (typeof GGBApplet === 'undefined') {
-    alert('GeoGebra 라이브러리를 불러오는 중입니다. 잠시 후 다시 시도하세요.'); return;
-  }
-  _ggbReady = false; _ggbApi = null;
-  $('ggbInsertBtn').disabled = true;
-  $('ggbLoadMsg').style.display = 'flex';
-
-  const container = $('ggb-container');
-  const existing  = container.querySelector('#ggbDiv');
-  if (existing) existing.remove();
-  const div = document.createElement('div');
-  div.id = 'ggbDiv';
-  container.appendChild(div);
-
-  const applet = new GGBApplet({
-    appName: appName || 'graphing',
-    width: 760,
-    height: 480,
-    showToolBar: true,
-    showAlgebraInput: true,
-    showMenuBar: true,
-    enableFileFeatures: false,
-    enableUndoRedo: true,
-    showZoomButtons: true,
-    showFullscreenButton: false,
-    errorDialogsActive: false,
-    useBrowserForJS: true,
-    allowStyleBar: true,
-    preventFocus: false,
-    appletOnLoad: function(api) {
-      _ggbApi   = api;
-      _ggbReady = true;
-      $('ggbLoadMsg').style.display = 'none';
-      $('ggbInsertBtn').disabled    = false;
-    }
-  }, true);
-  applet.inject('ggbDiv');
+function g2dAddFn() {
+  const expr = document.getElementById("g2dFnInput").value.trim();
+  if (!expr) return;
+  const color = document.getElementById("g2dFnColor").value;
+  if (G2D.addFn(expr, color)) { g2dRefreshLists(); document.getElementById("g2dFnInput").value=""; }
 }
 
-async function insertGgbToQuestion() {
-  if (!_ggbApi || !_ggbReady) return;
-  $('ggbInsertBtn').disabled = true;
-  $('ggbInsertBtn').textContent = '캡처 중…';
-  try {
-    const b64 = _ggbApi.getPNGBase64(1, false, 96);
-    const w   = $('ggbDisplayW').value || '320';
-    const tag = `[GGB:${w}:${b64}]`;
-    const ta  = $('rpText');
-    const pos = ta.selectionStart;
-    ta.value  = ta.value.slice(0, pos) + tag + ta.value.slice(ta.selectionEnd);
-    closeGgbModal();
-  } catch(e) {
-    alert('그래프 캡처 실패: ' + e.message);
-  } finally {
-    $('ggbInsertBtn').disabled    = false;
-    $('ggbInsertBtn').textContent = '시험지에 삽입';
-  }
+function g2dAddPt() {
+  const x=parseFloat(document.getElementById("g2dPtX").value);
+  const y=parseFloat(document.getElementById("g2dPtY").value);
+  const label=document.getElementById("g2dPtLabel").value.trim();
+  if(isNaN(x)||isNaN(y)){alert("x, y 좌표를 입력하세요");return;}
+  G2D.addPt(x,y,label||("("+x+","+y+")"));
+  g2dRefreshLists();
+  document.getElementById("g2dPtX").value="";
+  document.getElementById("g2dPtY").value="";
+  document.getElementById("g2dPtLabel").value="";
 }
 
+function g2dRefreshLists() {
+  const fl=document.getElementById("g2dFnList");
+  if(fl) fl.innerHTML=G2D.fns.map(function(f,i){
+    return '<div style="display:flex;align-items:center;gap:3px;margin:2px 0">'+
+      '<span style="width:9px;height:9px;border-radius:2px;background:'+f.color+';display:inline-block;flex-shrink:0"></span>'+
+      '<span style="flex:1;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">y='+f.expr+'</span>'+
+      '<button onclick="G2D.fns.splice('+i+',1);G2D.render();g2dRefreshLists()" style="font-size:9px;padding:1px 4px;background:rgba(239,68,68,.2);border:none;border-radius:3px;color:#ef4444;cursor:pointer">✕</button>'+
+      '</div>';
+  }).join("");
+  const pl=document.getElementById("g2dPtList");
+  if(pl) pl.innerHTML=G2D.pts.map(function(p,i){
+    return '<div style="display:flex;align-items:center;gap:3px;margin:2px 0">'+
+      '<span style="flex:1;font-size:10px">'+p.label+'</span>'+
+      '<button onclick="G2D.pts.splice('+i+',1);G2D.render();g2dRefreshLists()" style="font-size:9px;padding:1px 4px;background:rgba(239,68,68,.2);border:none;border-radius:3px;color:#ef4444;cursor:pointer">✕</button>'+
+      '</div>';
+  }).join("");
+}
+
+function g3dShape(shape) {
+  G3D.mode=shape; G3D.render();
+  document.querySelectorAll(".g3d-shape-btn").forEach(function(b){b.classList.remove("active");});
+  const btn=document.querySelector(".g3d-shape-btn[data-shape=\""+shape+"\"]");
+  if(btn) btn.classList.add("active");
+}
+
+function g3dSetFn() {
+  const expr=document.getElementById("g3dFnInput").value.trim();
+  if(!expr) return;
+  try { new Function("x","z","with(Math){return "+expr+"}")(0,0); }
+  catch(e) { alert("식 오류: "+expr); return; }
+  G3D.fnStr=expr; G3D.mode="function";
+  document.querySelectorAll(".g3d-shape-btn").forEach(function(b){b.classList.remove("active");});
+  G3D.render();
+}
+
+function insertGraphToQuestion() {
+  const canvas = _graphTabActive==="2d"
+    ? document.getElementById("graphCanvas2d")
+    : document.getElementById("graphCanvas3d");
+  const w = document.getElementById("ggbDisplayW").value || "320";
+  const b64 = canvas.toDataURL("image/png").split(",")[1];
+  const tag = "[GGB:"+w+":"+b64+"]";
+  const ta = $("rpText");
+  if (!ta) return;
+  const pos = ta.selectionStart || ta.value.length;
+  ta.value = ta.value.slice(0,pos) + "\n" + tag + "\n" + ta.value.slice(pos);
+  ta.dispatchEvent(new Event("input"));
+  closeGgbModal();
+}
 /* ── 삭제 핸들러 교체: 삭제 후 캔버스 초기화 ── */
 (function patchDeleteBtn() {
   const old = $('delExamBtn');
