@@ -1514,7 +1514,6 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
               <select id="diffSel">
                 <option value="기본">🟢 기본</option>
                 <option value="실력">🔵 실력</option>
-                <option value="대전권기출">🟣 대전권 기출</option>
                 <option value="강남8학군+전국단위자사고">🟡 강남 8학군 + 전국단위 자사고</option>
                 <option value="모의고사변형">🟠 모의고사 변형</option>
                 <option value="과학고+영재고">🔴 과학고 + 영재고</option>
@@ -3171,6 +3170,7 @@ function buildPrompt() {
   const diff       = isSuneung ? $('suneungDiffSel').value
                    : isLicense ? $('licenseDiffSel').value
                    : isMock    ? ($('mockDiffSel') ? $('mockDiffSel').value : '모의고사-중간')
+                   : (_aigSubMode === '지역별' && _aigRegion === '대전') ? '대전권기출'
                    : $('diffSel').value;
   const extra      = isSuneung ? $('suneungExtraInput').value.trim()
                    : isLicense ? $('licenseExtraInput').value.trim()
