@@ -1164,8 +1164,8 @@ nav{display:none!important}
 </div><!-- /pgApp -->
 
 <!-- ══ 관리자 ══ -->
-<div class="page" id="pgAdmin">
-<div style="flex:1;overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:20px">
+<div class="page" id="pgAdmin" style="padding:28px 32px;display:flex;flex-direction:column;gap:20px">
+<div>
 
   <div style="display:flex;align-items:center;justify-content:space-between">
     <h2 style="font-size:20px;font-weight:800">관리자 패널</h2>
@@ -2309,8 +2309,15 @@ function setActiveTab(tab) {
   if (tab === 'guide') { openGuide(); return; }
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  if (tab === 'admin') { $('pgAdmin').classList.add('active'); loadAdmin(); }
-  else { $('pgApp').classList.add('active'); }
+  if (tab === 'admin') {
+    const pg = $('pgAdmin');
+    pg.classList.add('active');
+    const tbH = $('toolbar') ? $('toolbar').offsetHeight : 48;
+    pg.style.height = (window.innerHeight - tbH) + 'px';
+    pg.style.overflowY = 'auto';
+    pg.style.display = 'block';
+    loadAdmin();
+  } else { $('pgApp').classList.add('active'); }
 }
 function openGuide() {
   $('guideModal').classList.add('open');
