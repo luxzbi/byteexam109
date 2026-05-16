@@ -281,7 +281,7 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* ══ ADMIN ══ */
 #pgAdmin{padding:28px 32px;flex-direction:column;gap:20px;overflow-y:auto}
-.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:4px}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:4px;flex-shrink:0}
 .stat-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
   padding:18px 20px;
@@ -290,7 +290,7 @@ main{flex:1;display:flex;flex-direction:column}
 .stat-card .lbl{font-size:12px;color:var(--muted);margin-top:3px}
 .admin-section{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
-  overflow:hidden;
+  overflow:hidden;flex-shrink:0;
 }
 .admin-section-head{
   display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:10px;
@@ -1165,7 +1165,7 @@ nav{display:none!important}
 
 <!-- ══ 관리자 ══ -->
 <div class="page" id="pgAdmin">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:10px">
       <button class="btn btn-ghost btn-sm" onclick="setActiveTab('app')" style="font-size:13px">← 홈</button>
       <h2 style="font-size:20px;font-weight:800">관리자 패널</h2>
@@ -1186,7 +1186,7 @@ nav{display:none!important}
       <h3>유저 관리</h3>
       <span style="font-size:12px;color:var(--muted)" id="userCount"></span>
     </div>
-    <div style="overflow-x:auto;max-height:320px;overflow-y:auto">
+    <div style="overflow-x:auto">
       <table class="tbl">
         <thead><tr>
           <th>아이디</th><th class="mob-hide">닉네임</th><th>권한</th><th class="mob-hide">가입일</th><th>작업</th>
@@ -1202,7 +1202,7 @@ nav{display:none!important}
       <h3>전체 시험지</h3>
       <span style="font-size:12px;color:var(--muted)" id="examCountAdmin"></span>
     </div>
-    <div style="overflow-x:auto;max-height:380px;overflow-y:auto">
+    <div style="overflow-x:auto">
       <table class="tbl">
         <thead><tr>
           <th>제목</th><th class="mob-hide">작성자</th><th class="mob-hide">난이도</th><th class="mob-hide">날짜</th><th>작업</th>
