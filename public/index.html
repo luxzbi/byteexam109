@@ -1180,35 +1180,37 @@ nav{display:none!important}
     <div class="stat-card"><div class="val" id="statVersion">1s</div><div class="lbl">byteexam</div></div>
   </div>
 
-  <!-- 유저 관리 -->
-  <div class="admin-section">
-    <div class="admin-section-head">
-      <h3>유저 관리</h3>
-      <span style="font-size:12px;color:var(--muted)" id="userCount"></span>
+  <div style="display:flex;gap:20px;align-items:flex-start;flex-shrink:0">
+    <!-- 유저 관리 -->
+    <div class="admin-section" style="flex:1;min-width:0">
+      <div class="admin-section-head">
+        <h3>유저 관리</h3>
+        <span style="font-size:12px;color:var(--muted)" id="userCount"></span>
+      </div>
+      <div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 320px)">
+        <table class="tbl">
+          <thead><tr>
+            <th>아이디</th><th class="mob-hide">닉네임</th><th>권한</th><th class="mob-hide">가입일</th><th>작업</th>
+          </tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
     </div>
-    <div style="overflow-x:auto">
-      <table class="tbl">
-        <thead><tr>
-          <th>아이디</th><th class="mob-hide">닉네임</th><th>권한</th><th class="mob-hide">가입일</th><th>작업</th>
-        </tr></thead>
-        <tbody id="usersBody"></tbody>
-      </table>
-    </div>
-  </div>
 
-  <!-- 시험지 관리 -->
-  <div class="admin-section">
-    <div class="admin-section-head">
-      <h3>전체 시험지</h3>
-      <span style="font-size:12px;color:var(--muted)" id="examCountAdmin"></span>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="tbl">
-        <thead><tr>
-          <th>제목</th><th class="mob-hide">작성자</th><th class="mob-hide">난이도</th><th class="mob-hide">날짜</th><th>작업</th>
-        </tr></thead>
-        <tbody id="examsAdminBody"></tbody>
-      </table>
+    <!-- 시험지 관리 -->
+    <div class="admin-section" style="flex:1;min-width:0">
+      <div class="admin-section-head">
+        <h3>전체 시험지</h3>
+        <span style="font-size:12px;color:var(--muted)" id="examCountAdmin"></span>
+      </div>
+      <div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 320px)">
+        <table class="tbl">
+          <thead><tr>
+            <th>제목</th><th class="mob-hide">작성자</th><th class="mob-hide">난이도</th><th class="mob-hide">날짜</th><th>작업</th>
+          </tr></thead>
+          <tbody id="examsAdminBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
