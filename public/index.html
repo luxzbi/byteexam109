@@ -806,6 +806,8 @@ nav{display:none!important}
 [data-theme="light"] .rp-mob-drag{background:rgba(0,0,0,.18)}
 [data-theme="light"] .rp-mob-close{color:rgba(0,0,0,.35)}
 
+[data-theme="light"] #saveCard .card-sub{color:rgba(0,0,0,.45)}
+[data-theme="light"] #saveCard .fg label{color:rgba(0,0,0,.45)}
 [data-theme="light"] #saveCard .fg input,[data-theme="light"] #saveCard .fg textarea{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.13);color:#111}
 [data-theme="light"] #saveCard .fg input::placeholder,[data-theme="light"] #saveCard .fg textarea::placeholder{color:rgba(0,0,0,.3)}
 [data-theme="light"] #saveCard .btn-ghost{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.5)}
@@ -833,6 +835,9 @@ nav{display:none!important}
 [data-theme="light"] .aig-mode-btn:hover{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.22);color:#111}
 [data-theme="light"] .aig-cat-btn{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.12);color:#111}
 [data-theme="light"] .aig-cat-btn:hover{border-color:var(--accent);background:rgba(108,99,255,.06)}
+[data-theme="light"] .obj-only-wrap{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.1)}
+[data-theme="light"] .obj-only-label{color:#111}
+[data-theme="light"] .doktoogle-book-item{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.1);color:#111}
 [data-theme="light"] .aig-cat-sub{color:rgba(0,0,0,.45)}
 [data-theme="light"] .aig-section-sep{color:rgba(0,0,0,.35)}
 [data-theme="light"] .aig-submode-btn{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.6)}
@@ -1602,9 +1607,9 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
               </select>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px">
+          <div class="obj-only-wrap" style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px">
             <input type="checkbox" id="objOnlyCheck" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-            <label for="objOnlyCheck" style="font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;margin:0;font-weight:500;user-select:none">객관식만 (전체 5지선다형으로 출제)</label>
+            <label for="objOnlyCheck" class="obj-only-label" style="font-size:13px;cursor:pointer;margin:0;font-weight:500;user-select:none">객관식만 (전체 5지선다형으로 출제)</label>
           </div>
           <div class="fg">
             <label>출제 모드</label>
