@@ -5227,8 +5227,8 @@ function aigNext() {
       if (!_aigCategory) { toast('시험 유형을 선택하세요', 'err'); return; }
       if (_aigCategory === '내신' && !_aigSubject) { toast('과목을 선택하세요', 'err'); return; }
       if (_aigSubject === '독토글' && (!_aigDoktoogleBooks || _aigDoktoogleBooks.length === 0)) { toast('책을 1권 이상 선택하세요', 'err'); return; }
-      /* 수능: step 2 범위 입력 건너뜀 → 바로 step 3 */
-      if (_aigCategory === '수능') { aigGo(3); return; }
+      /* 수능/독토글: step 2 범위 입력 건너뜀 → 바로 step 3 */
+      if (_aigCategory === '수능' || _aigSubject === '독토글') { aigGo(3); return; }
     }
     if (_aigStep === 2) {
       /* 내신: scopeInput 검증 */
