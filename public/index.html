@@ -4075,7 +4075,7 @@ function updatePrompt() {
 if ($('objOnlyCheck')) $('objOnlyCheck').addEventListener('change', updatePrompt);
 
 function copyPrompt() {
-  if (!$('scopeInput').value.trim()) { toast('시험 범위를 먼저 입력하세요','err'); return; }
+  if (_aigSubject !== '독토글' && _aigCategory === '내신' && !$('scopeInput').value.trim()) { toast('시험 범위를 먼저 입력하세요','err'); return; }
   const p = buildPrompt();
   navigator.clipboard.writeText(p)
     .then(()=>toast('프롬프트 복사 완료!'))
@@ -5258,6 +5258,7 @@ async function aigDoSave() {
     const isLicense = _aigCategory === '자격증';
     const scope = isSuneung ? '수능 모의고사'
                 : isLicense ? $('licenseScopeInput').value.trim()
+                : (_aigSubject === '독토글') ? ('독토글: ' + (_aigDoktoogleBooks||[]).join(', '))
                 : $('scopeInput').value.trim();
     const diff  = isSuneung ? $('suneungDiffSel').value
                 : isLicense ? $('licenseDiffSel').value
