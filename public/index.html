@@ -323,6 +323,7 @@ main{flex:1;display:flex;flex-direction:column}
 }
 .t-item.ok{border-color:var(--success);color:var(--success)}
 .t-item.err{border-color:var(--danger);color:var(--danger)}
+.t-item.warn{border-color:#f59e0b;color:#f59e0b}
 @keyframes tIn{from{transform:translateX(16px);opacity:0}to{transform:none;opacity:1}}
 
 /* ══ PRINT ══ */
@@ -637,6 +638,13 @@ nav{display:none!important}
 .aig-cat-btn{flex:1;min-width:140px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:14px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;text-align:left}
 .aig-cat-btn:hover{border-color:rgba(167,139,250,.5)}
 .aig-cat-btn.active{border-color:var(--accent);background:rgba(108,99,255,.15)}
+.aig-cat-btn.aig-disabled{opacity:.4;cursor:not-allowed;pointer-events:auto}
+.aig-cat-btn.aig-disabled:hover{border-color:rgba(255,255,255,.1)}
+.aig-subject-btn.aig-disabled{opacity:.35;cursor:not-allowed;pointer-events:auto}
+.aig-subject-btn.aig-disabled:hover{border-color:rgba(255,255,255,.1)}
+.doktoogle-book-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);cursor:pointer;font-size:14px}
+.doktoogle-book-item:hover{background:rgba(108,99,255,.1)}
+.doktoogle-book-item input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
 .aig-cat-icon{font-size:20px;line-height:1}
 .aig-cat-label{font-size:13px;font-weight:700;color:var(--text)}
 .aig-cat-sub{font-size:11px;color:rgba(255,255,255,.35);line-height:1.4}
@@ -1443,40 +1451,18 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
           <button class="aig-cat-btn" id="catNaesinBtn" onclick="selectAigCategory('내신')">
             <span class="aig-cat-icon">🏫</span>
             <span class="aig-cat-label">중학·고등 내신</span>
-            <span class="aig-cat-sub">지역별·난이도별·모의고사 대비</span>
+            <span class="aig-cat-sub">수학·독토글 과목 출제</span>
           </button>
-          <button class="aig-cat-btn" id="catSuneungBtn" onclick="selectAigCategory('수능')">
+          <button class="aig-cat-btn aig-disabled" id="catSuneungBtn" onclick="toast('준비중입니다','warn')">
             <span class="aig-cat-icon">🎯</span>
             <span class="aig-cat-label">수능</span>
-            <span class="aig-cat-sub">2023~2026 출제 경향 반영</span>
+            <span class="aig-cat-sub">준비중</span>
           </button>
-          <button class="aig-cat-btn" id="catLicenseBtn" onclick="selectAigCategory('자격증')">
+          <button class="aig-cat-btn aig-disabled" id="catLicenseBtn" onclick="toast('준비중입니다','warn')">
             <span class="aig-cat-icon">📋</span>
             <span class="aig-cat-label">자격증 및 기타 시험</span>
-            <span class="aig-cat-sub">국가자격증·공무원·어학 등</span>
+            <span class="aig-cat-sub">준비중</span>
           </button>
-        </div>
-        <!-- 내신 선택 시: 출제 유형 -->
-        <div id="aigSubModeWrap" style="display:none">
-          <div class="aig-section-sep">출제 유형 선택</div>
-          <div class="aig-submode-group">
-            <button class="aig-submode-btn" id="subModeRegionBtn" onclick="selectAigSubMode('지역별')">🗺️ 지역별 선택</button>
-            <button class="aig-submode-btn" id="subModeDiffBtn" onclick="selectAigSubMode('난이도유형별')">📊 난이도·유형별</button>
-            <button class="aig-submode-btn" id="subModeMockBtn" onclick="selectAigSubMode('모의고사대비')">📝 모의고사 대비</button>
-          </div>
-          <!-- 난이도유형별 선택 시: 난이도 버튼 -->
-          <div id="aigDiffPresetWrap" style="display:none">
-            <div class="aig-section-sep" style="margin-top:12px">난이도 선택 (클릭하면 바로 프롬프트 생성)</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
-              <button class="aig-diff-preset-btn" id="diffPreset_기본" onclick="selectAigDiffPreset('기본')">🟢 기본</button>
-              <button class="aig-diff-preset-btn" id="diffPreset_실력" onclick="selectAigDiffPreset('실력')">🔵 실력</button>
-              <button class="aig-diff-preset-btn" id="diffPreset_강남" onclick="selectAigDiffPreset('강남8학군+전국단위자사고')">🟡 강남 8학군 + 전국단위 자사고</button>
-              <button class="aig-diff-preset-btn" id="diffPreset_모의" onclick="selectAigDiffPreset('모의고사변형')">🟠 모의고사 변형</button>
-              <button class="aig-diff-preset-btn" id="diffPreset_영재" onclick="selectAigDiffPreset('과학고+영재고')">🔴 과학고 + 영재고</button>
-            </div>
-            <!-- 난이도 선택 후 안내 메시지 -->
-            <div id="aigDiffPresetNotice" style="display:none"></div>
-          </div>
         </div>
         <!-- 지역별 선택 시: 지역 그리드 -->
         <div id="aigRegionWrap" style="display:none">
@@ -1513,21 +1499,32 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
         <div id="aigSubjectWrap" style="display:none">
           <div class="aig-section-sep">과목 선택</div>
           <div class="aig-subject-grid">
-            <button class="aig-subject-btn" data-subj="국어" onclick="selectAigSubject('국어')"><span class="sb-icon">📖</span>국어</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="국어" onclick="toast('준비중입니다','warn')"><span class="sb-icon">📖</span>국어</button>
             <button class="aig-subject-btn" data-subj="수학" onclick="selectAigSubject('수학')"><span class="sb-icon">📐</span>수학</button>
-            <button class="aig-subject-btn" data-subj="영어" onclick="selectAigSubject('영어')"><span class="sb-icon">🔤</span>영어</button>
-            <button class="aig-subject-btn" data-subj="역사" onclick="selectAigSubject('역사')"><span class="sb-icon">🏛️</span>한국사</button>
-            <button class="aig-subject-btn" data-subj="사회" onclick="selectAigSubject('사회')"><span class="sb-icon">🌏</span>사회</button>
-            <button class="aig-subject-btn" data-subj="과학" onclick="selectAigSubject('과학')"><span class="sb-icon">🔬</span>과학</button>
-            <button class="aig-subject-btn" data-subj="기술가정" onclick="selectAigSubject('기술가정')"><span class="sb-icon">🔧</span>기술가정</button>
-            <button class="aig-subject-btn" data-subj="도덕" onclick="selectAigSubject('도덕')"><span class="sb-icon">⚖️</span>도덕·윤리</button>
-            <button class="aig-subject-btn" data-subj="정보" onclick="selectAigSubject('정보')"><span class="sb-icon">💻</span>정보</button>
-            <button class="aig-subject-btn" data-subj="기타" onclick="selectAigSubject('기타')"><span class="sb-icon">✏️</span>기타</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="영어" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔤</span>영어</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="역사" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🏛️</span>한국사</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="사회" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🌏</span>사회</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="과학" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔬</span>과학</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="기술가정" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔧</span>기술가정</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="도덕" onclick="toast('준비중입니다','warn')"><span class="sb-icon">⚖️</span>도덕·윤리</button>
+            <button class="aig-subject-btn aig-disabled" data-subj="정보" onclick="toast('준비중입니다','warn')"><span class="sb-icon">💻</span>정보</button>
+            <button class="aig-subject-btn" data-subj="독토글" onclick="selectAigSubject('독토글')"><span class="sb-icon">📚</span>독토글</button>
           </div>
           <!-- 기타 선택 시 입력 칸 -->
           <div id="aigSubjectCustomWrap" class="aig-subject-custom" style="display:none">
             <input type="text" id="aigSubjectNameInput" placeholder="과목명 (예: 체육, 음악, 미술...)">
             <textarea id="aigSubjectDescInput" placeholder="과목 특성 설명 (예: 이론+실기 혼합, 용어 암기 중심, 악보 해석 문항 포함 등)"></textarea>
+          </div>
+          <!-- 독토글 도서 선택 -->
+          <div id="aigDoktoogleWrap" style="display:none;margin-top:12px">
+            <div class="aig-section-sep">시험 범위 — 책 선택 <span style="font-size:11px;opacity:.6">(복수 선택 가능)</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+              <label class="doktoogle-book-item"><input type="checkbox" value="마당을 나온 암탉" onchange="updateDoktoogleBooks()"> 마당을 나온 암탉</label>
+              <label class="doktoogle-book-item"><input type="checkbox" value="어린왕자" onchange="updateDoktoogleBooks()"> 어린왕자</label>
+              <label class="doktoogle-book-item"><input type="checkbox" value="책만 보는 바보" onchange="updateDoktoogleBooks()"> 책만 보는 바보</label>
+              <label class="doktoogle-book-item"><input type="checkbox" value="스키너의 심리 상자 열기" onchange="updateDoktoogleBooks()"> 스키너의 심리 상자 열기</label>
+              <label class="doktoogle-book-item"><input type="checkbox" value="정의란 무엇인가" onchange="updateDoktoogleBooks()"> 정의란 무엇인가</label>
+            </div>
           </div>
         </div>
       </div>
@@ -1554,7 +1551,7 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
                 <option value="중1">중1</option>
                 <option value="중2">중2</option>
                 <option value="중3">중3</option>
-                <option value="고1">고1</option>
+                <option value="고1" selected>고1</option>
                 <option value="고2">고2</option>
                 <option value="고3">고3</option>
               </select>
@@ -3502,6 +3499,49 @@ function buildPrompt() {
   const subjName    = subject === '기타' ? (_aigSubjectCustomName || '기타 과목') : subject;
   const subjDesc    = subject === '기타' ? _aigSubjectCustomDesc : '';
 
+  /* 독토글 과목: 별도 프롬프트 반환 */
+  if (subject === '독토글') {
+    const books = _aigDoktoogleBooks && _aigDoktoogleBooks.length > 0
+      ? _aigDoktoogleBooks.join(', ')
+      : '(책 미선택 — 5권 중 선택 후 다시 시도하세요)';
+    return `⚠️ [독토글 독서·논술 시험지 출제 지시] ⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【출제 도서】: ${books}
+【학년】: ${grade} | 【문항 수】: ${total}문항 (이 수치를 반드시 준수)
+【배점 구조】: ${pointDesc}
+【난이도】: ${diff}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+<system_persona>
+당신은 한국 중·고등학교 독서 교육 전문 교사입니다.
+지정된 도서의 내용을 깊이 이해하고, 학생의 독해력·사고력·논술 능력을 평가하는 시험지를 출제합니다.
+</system_persona>
+
+<book_content_directive>
+【도서 내용 정리 (내부 작업 — 출력 금지)】
+▸ 출제 전 지정 도서의 핵심 줄거리, 주제, 인물, 사건 흐름, 작가 의도를 내부적으로 정리하십시오.
+▸ 시험에 출제할 핵심 내용을 선별하십시오: 주제 의식, 중심 갈등, 인물의 심리 변화, 상징적 장면, 작가의 메시지.
+</book_content_directive>
+
+<exam_directive>
+【선생님 입장 출제 지시】
+▸ 학생이 단순 줄거리 암기가 아닌 "내용 이해 + 비판적 사고"를 발휘해야 풀 수 있는 문항을 설계하십시오.
+▸ 핵심 내용과 연결된 문항을 우선시하십시오 — 핵심 주제·갈등·상징과 관련 없는 지엽적 세부 사항 문항 비율을 최소화.
+▸ 문항 유형: 5지선다 (주제·인물·사건 파악), 단답형 (핵심 어휘·개념), 서술형 (의미·비평·연결)을 혼합.
+▸ 서술형 문항은 반드시 포함 — 학생이 자신의 생각을 도서 내용에 근거해 논리적으로 서술하도록 요구.
+▸ 각 문항은 도서의 어느 부분(장·사건)과 관련된 것인지 문항 설계 시 고려하되 출처 명시는 생략 가능.
+▸ 오답 선지는 비슷하게 그럴듯하게 구성하되, 도서 내용을 제대로 이해한 학생은 변별 가능하게 설계.
+▸ 총 문항 수 ${total}개를 정확히 지키십시오.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</exam_directive>
+
+<output_format>
+byteexam 형식의 시험지 코드를 출력하십시오.
+문항 작성 전 코드 블록 밖에 아래 메시지를 출력하십시오:
+"✅ 독토글 독서 시험지 생성을 시작합니다. 잘 생각하기(Pro) 모드를 권장합니다."
+</output_format>`;
+  }
+
   /* 과목 레이블을 catLabel에 추가 */
   if (subject) catLabel += ` | 과목: ${subjName}`;
 
@@ -3513,13 +3553,16 @@ function buildPrompt() {
     subjectBlock = `\n<subject_directive>\n【과목: ${subjName}】\n${subjDesc ? `▸ 과목 특성: ${subjDesc}\n` : ''}▸ 이 과목의 실제 시험지 형식에 맞게 적절한 자료(표·그래프·지문 등)를 활용하여 출제하십시오.\n</subject_directive>`;
   }
 
+  /* 사용자가 특정 단원을 지정했는지 감지 → 단원 수 제한 오버라이드 */
+  const scopeUnitCount = (scope.match(/[,，、·]\s*[가-힣]/g) || []).length + 1;
+  const isNarrowScope = scope.length > 0 && scope !== '(시험 범위 미입력)' && scopeUnitCount <= 2;
+  const scopeOverride = isNarrowScope
+    ? `\n<scope_override>\n⚠️ 【범위 제한 오버라이드 — 최우선 적용】\n사용자가 지정한 시험 범위: "${scope}"\n▸ 이 범위는 ${scopeUnitCount}개 이하의 단원/개념으로 구성되어 있습니다.\n▸ 아래 난이도 지시에 "3개 이상 단원 융합" 또는 "여러 단원 융합" 요건이 있더라도, 지정 범위 내의 개념만으로 문항을 구성하십시오.\n▸ 단원 융합 요건은 지정 범위 안에서만 적용됩니다 — 범위 외 단원 개념 사용 절대 금지.\n▸ 지정 범위가 1~2개 단원이라면, 해당 단원 내의 다양한 개념·조건·케이스를 조합하여 난이도를 확보하십시오.\n</scope_override>`
+    : '';
+
   /* 카테고리별 추가 지시 블록 */
   let categoryBlock = '';
-  if (_aigCategory === '내신' && _aigSubMode === '지역별' && _aigRegion && REGION_DATA[_aigRegion]) {
-    categoryBlock = `\n<regional_directive>\n${REGION_DATA[_aigRegion]}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n</regional_directive>`;
-  } else if (_aigCategory === '내신' && _aigSubMode === '모의고사대비') {
-    categoryBlock = `\n<mockexam_directive>\n【모의고사 대비 출제 지시】\n▸ 수능/전국연합학력평가 형식을 충실히 재현하십시오.\n▸ 발문: 수능 공식 발문 스타일 사용 ("다음 물음에 답하시오" 등)\n▸ ①②③④⑤ 원문자 5지 선다, 각 선지 길이 균등\n▸ 난이도 배치: 앞부분 기본 → 중반 응용 → 후반 준킬러 순\n▸ ㄱㄴㄷ 보기형 문항 2~3문항 이상 포함 (수능 특유의 보기 판별 유형)\n▸ 자료(그래프·표·그림) 제시형 문항 포함 권장\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n</mockexam_directive>`;
-  } else if (_aigCategory === '수능') {
+  if (_aigCategory === '수능') {
     categoryBlock = SUNEUNG_PROMPT;
   } else if (_aigCategory === '자격증') {
     const descBlock = licenseDesc ? `\n▸ 시험 특성: ${licenseDesc}` : '';
@@ -3531,6 +3574,8 @@ function buildPrompt() {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【선택된 시험 유형: ${catLabel || '(미선택)'}】
 【선택된 난이도: ${diff}】
+【총 문항 수 확정값: ${total}문항 — 이 값이 절대 기준입니다. 아래 난이도 지시에 별도 문항 수 언급이 있더라도 이 값(${total}문항)을 따르십시오.】
+【출판사·문제집·교과서 이름 사용 금지 — 특정 출판사, 문제집, 교재명을 문항 본문·선지·발문 어디에도 언급하지 마십시오.】
 
 이 시험지의 모든 문항은 "${diff}" 난이도 기준을 100% 충족해야 합니다.
 "쉽게 내도 되겠지", "대충 이 정도면 되겠지" 라는 판단은 즉시 폐기하십시오.
@@ -3601,7 +3646,7 @@ ${objOnly ? `
 ▸ 타 학년 선행 개념은 출제 범위에 명시되지 않는 한 절대 사용 금지입니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </exam_specification>
-${categoryBlock}${subjectBlock}
+${categoryBlock}${subjectBlock}${scopeOverride}
 <autonomous_research_directive>
 ⚠️ 즉각 문항을 생성하지 마십시오. 반드시 아래 순서(준비→탐색→계획→실행)를 따르십시오.
 
@@ -3622,15 +3667,9 @@ ${categoryBlock}${subjectBlock}
 ⚠️ 이 단계를 건너뛰고 즉각 문항을 생성하면 안 됩니다.
 ⚠️ 구조 확보 없이 바로 창작하면 난이도와 독창성이 목표 수준에 미치지 못합니다.
 
-【1A — 구조 확보 방법 (아래 2가지 중 AI가 자유롭게 선택, 하나 이상 반드시 사용)】
+【1A — 구조 확보 방법】
 
-▶ 방법 1 — 웹에서 문제 참고·변형 가져오기 (Web Reference)
-  검색 도구로 웹사이트를 둘러보아 수준에 맞는 고난도 문제를 찾아 참고하거나 변형하십시오.
-  - 문제 구조(논리 뼈대, 케이스 분기, 함정 위치)는 참고하되, 수치·변수명·표현은 완전히 새로 작성 (원문 그대로 복사 금지)
-  - 원본보다 조건 1개 추가하거나 역전시켜 더 어렵게 변형
-  - 수집 기준: 풀이에 2단계 이상의 논리 전환이 필요한 문제 / 단순 계산으로 해결 불가능한 구조
-
-▶ 방법 2 — 직접 변형·응용·개량 (Original Creation)
+▶ 직접 변형·응용·개량 (Original Creation)
   내부 학습 데이터 구조 또는 수학적 명제·정리에서 출발하여 직접 설계합니다:
   - 조건 일반화: 특수값 → 매개변수 m으로 확장 / 조건 역전: 결론↔조건 뒤집기
   - 차원 확장: 1변수 → 다변수, 이산 → 연속 / 함정 이동: 함정 위치 변경 또는 추가
@@ -4981,27 +5020,32 @@ function selectAigCategory(cat) {
   _aigCategory = cat;
   _aigSubMode = '';
   _aigRegion = '';
-  document.querySelectorAll('.aig-cat-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.aig-cat-btn:not(.aig-disabled)').forEach(b => b.classList.remove('active'));
   const idMap = { '내신': 'catNaesinBtn', '수능': 'catSuneungBtn', '자격증': 'catLicenseBtn' };
   if (idMap[cat]) $(idMap[cat]).classList.add('active');
-  $('aigSubModeWrap').style.display = cat === '내신' ? '' : 'none';
   $('aigRegionWrap').style.display = 'none';
   $('aigSuneungCurriculumWrap').style.display = cat === '수능' ? '' : 'none';
   $('aigSubjectWrap').style.display = (cat === '내신' || cat === '수능') ? '' : 'none';
-  document.querySelectorAll('.aig-submode-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.aig-region-btn').forEach(b => b.classList.remove('active'));
   /* 수능 교육과정 기본값 복원 */
   if (cat === '수능') selectSuneungCurriculum(_aigSuneungCurriculum || '2022개정');
 }
 
+let _aigDoktoogleBooks = [];
+function updateDoktoogleBooks() {
+  _aigDoktoogleBooks = Array.from(document.querySelectorAll('#aigDoktoogleWrap input[type=checkbox]:checked')).map(c => c.value);
+}
+
 function selectAigSubject(subj) {
   _aigSubject = subj;
-  document.querySelectorAll('.aig-subject-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.aig-subject-btn:not(.aig-disabled)').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.aig-subject-btn').forEach(b => {
     if (b.dataset.subj === subj) b.classList.add('active');
   });
   $('aigSubjectCustomWrap').style.display = subj === '기타' ? '' : 'none';
+  $('aigDoktoogleWrap').style.display = subj === '독토글' ? '' : 'none';
   if (subj !== '기타') { _aigSubjectCustomName = ''; _aigSubjectCustomDesc = ''; }
+  if (subj !== '독토글') { _aigDoktoogleBooks = []; document.querySelectorAll('#aigDoktoogleWrap input[type=checkbox]').forEach(c => c.checked = false); }
 }
 /* 기타 입력 변경 시 즉시 반영 */
 document.addEventListener('DOMContentLoaded', () => {
