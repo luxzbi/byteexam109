@@ -891,6 +891,13 @@ nav{display:none!important}
   #saveCard h2.save-title-h{font-size:18px}
   /* 리사이즈 핸들 숨김 */
   .panel-resize{display:none}
+  /* 모바일에서 bytenode 링크 버튼 숨김 (toolbar 공간 부족) */
+  .tb-bytenode-link{display:none!important}
+  /* AIG 패널 모바일 */
+  .aig-subject-grid{grid-template-columns:repeat(3,1fr)!important}
+  .aig-cat-group{flex-direction:column}
+  #aiGenPanel{height:90vh;max-height:90vh}
+  .aig-body{padding:10px 12px}
   /* GGB 모달 */
   #ggbPanel{width:calc(100vw - 8px)!important;max-width:none}
   .graph-inner{flex-direction:column}
@@ -921,6 +928,9 @@ nav{display:none!important}
   .panel-resize{display:none}
   /* saveCard 모바일 처리 */
   #saveCard{width:100%;box-sizing:border-box;padding:20px 16px}
+  /* AIG 패널 태블릿 */
+  .aig-subject-grid{grid-template-columns:repeat(4,1fr)!important}
+  .tb-bytenode-link{font-size:11.5px}
 }
 </style>
 </head>
@@ -948,6 +958,7 @@ nav{display:none!important}
   <div class="tb-div"></div>
   <span id="tbExamTitle">시험지를 선택하세요</span>
   <div class="tb-sp"></div>
+  <a href="https://bytenode109.vercel.app" target="_blank" class="tb-btn tb-bytenode-link" style="text-decoration:none">🔗 bytenode가기</a>
   <button class="tb-btn ai-btn" id="tbAiBtn" style="display:none">✨ 시험지 프롬프트 만들기</button>
   <button class="tb-btn" id="dlPdfBtn" style="display:none">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
