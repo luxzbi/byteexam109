@@ -2089,6 +2089,85 @@ function renderCoord(raw) {
       const large = Math.abs(d2-d1) > 180 ? 1 : 0;
       g += `<path d="M${x1v.toFixed(1)},${y1v.toFixed(1)} A${r2.toFixed(1)},${r2.toFixed(1)} 0 ${large},0 ${x2v.toFixed(1)},${y2v.toFixed(1)}" fill="none" stroke="#555" stroke-width="1"/>`;
     }
+    // ellipse(cx,cy,rx,ry) — 타원
+    else if ((m = el.match(/^ellipse\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const rx2 = Math.abs(a[2]) / (xmax-xmin) * innerW;
+      const ry2 = Math.abs(a[3]) / (ymax-ymin) * innerH;
+      g += `<ellipse cx="${sx(a[0]).toFixed(1)}" cy="${sy(a[1]).toFixed(1)}" rx="${rx2.toFixed(1)}" ry="${ry2.toFixed(1)}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // hyperbola_x(a,b,xstart,xend) — x²/a²-y²/b²=1 (좌우 쌍곡선)
+    else if ((m = el.match(/^hyperbola_x\(([^)]+)\)/))) {
+      const [ha,hb,hx0,hx1] = m[1].split(',').map(Number);
+      const steps = 120;
+      const ptsT = [], ptsB = [];
+      for (let k=0; k<=steps; k++) {
+        const xv = hx0 + (hx1-hx0)*k/steps;
+        if (Math.abs(xv) < ha) continue;
+        const yv = hb * Math.sqrt(xv*xv/(ha*ha) - 1);
+        if (yv >= ymin-1 && yv <= ymax+1) ptsT.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+        if (-yv >= ymin-1 && -yv <= ymax+1) ptsB.push(`${sx(xv).toFixed(1)},${sy(-yv).toFixed(1)}`);
+      }
+      if (ptsT.length>1) g += `<polyline points="${ptsT.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+      if (ptsB.length>1) g += `<polyline points="${ptsB.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // hyperbola_y(a,b,ystart,yend) — y²/a²-x²/b²=1 (상하 쌍곡선)
+    else if ((m = el.match(/^hyperbola_y\(([^)]+)\)/))) {
+      const [ha,hb,hy0,hy1] = m[1].split(',').map(Number);
+      const steps = 120;
+      const ptsR = [], ptsL = [];
+      for (let k=0; k<=steps; k++) {
+        const yv = hy0 + (hy1-hy0)*k/steps;
+        if (Math.abs(yv) < ha) continue;
+        const xv = hb * Math.sqrt(yv*yv/(ha*ha) - 1);
+        if (yv >= ymin-1 && yv <= ymax+1) {
+          ptsR.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+          ptsL.push(`${sx(-xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+        }
+      }
+      if (ptsR.length>1) g += `<polyline points="${ptsR.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+      if (ptsL.length>1) g += `<polyline points="${ptsL.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // trig(sin|cos,A,B,C,D,xstart,xend) — A*sin/cos(Bx+C)+D 삼각함수 그래프
+    else if ((m = el.match(/^trig\(([^)]+)\)/))) {
+      const segs2 = m[1].split(',');
+      const ftype = (segs2[0]||'sin').trim();
+      const [tA,tB,tC,tD,tx0,tx1] = segs2.slice(1).map(Number);
+      const steps = 150;
+      const pts = [];
+      for (let k=0; k<=steps; k++) {
+        const xv = tx0 + (tx1-tx0)*k/steps;
+        const yv = tA*(ftype==='cos'?Math.cos(tB*xv+tC):Math.sin(tB*xv+tC)) + tD;
+        if (yv >= ymin-1 && yv <= ymax+1) pts.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+        else if (pts.length > 1) { g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`; pts.length=0; }
+      }
+      if (pts.length > 1) g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // cubic(a,b,c,d,xstart,xend) — y=ax³+bx²+cx+d
+    else if ((m = el.match(/^cubic\(([^)]+)\)/))) {
+      const [ca,cb,cc,cd,cx0,cx1] = m[1].split(',').map(Number);
+      const steps = 100;
+      const pts = [];
+      for (let k=0; k<=steps; k++) {
+        const xv = cx0 + (cx1-cx0)*k/steps;
+        const yv = ca*xv*xv*xv + cb*xv*xv + cc*xv + cd;
+        if (yv >= ymin-1 && yv <= ymax+1) pts.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+        else if (pts.length > 1) { g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`; pts.length=0; }
+      }
+      if (pts.length > 1) g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // vector(x1,y1,x2,y2) — 벡터 화살표
+    else if ((m = el.match(/^vector\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      g += `<line x1="${sx(a[0]).toFixed(1)}" y1="${sy(a[1]).toFixed(1)}" x2="${sx(a[2]).toFixed(1)}" y2="${sy(a[3]).toFixed(1)}" stroke="#222" stroke-width="1.8" marker-end="url(#ray${uid})"/>`;
+    }
+    // asymptote(a,b,xstart,xend) — 점선 점근선 (y=ax+b)
+    else if ((m = el.match(/^asymptote\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [as,ab2,ax0,ax1] = a;
+      const ay0 = as*ax0+ab2, ay1 = as*ax1+ab2;
+      g += `<line x1="${sx(ax0).toFixed(1)}" y1="${sy(ay0).toFixed(1)}" x2="${sx(ax1).toFixed(1)}" y2="${sy(ay1).toFixed(1)}" stroke="#888" stroke-width="1" stroke-dasharray="5,4"/>`;
+    }
   }
 
   const defs = `<defs>
@@ -2202,6 +2281,33 @@ function renderFigure(raw) {
       const px2 = x + sz*cos - sz*sin, py2 = y - sz*sin - sz*cos;
       const px3 = x - sz*sin, py3 = y - sz*cos;
       g += `<polyline points="${px1.toFixed(1)},${py1.toFixed(1)} ${px2.toFixed(1)},${py2.toFixed(1)} ${px3.toFixed(1)},${py3.toFixed(1)}" fill="none" stroke="#333" stroke-width="1"/>`;
+    }
+    // ellipse(cx,cy,rx,ry) — 타원
+    else if ((m = el.match(/^ellipse\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      g += `<ellipse cx="${a[0]}" cy="${a[1]}" rx="${a[2]}" ry="${a[3]}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // tick(x,y,angle,n) — 변 길이 같음 표시 (n=1:단선, 2:이중선, 3:삼중선)
+    else if ((m = el.match(/^tick\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [tx,ty,tangle,tn2=1] = a;
+      const rad = (tangle||0)*Math.PI/180;
+      const crad = Math.cos(rad), srad = Math.sin(rad);
+      const sz = 6;
+      for (let t=0; t<tn2; t++) {
+        const offset = (t - (tn2-1)/2) * 5;
+        const ox = offset*crad, oy = offset*srad;
+        g += `<line x1="${(tx+ox-sz*srad).toFixed(1)}" y1="${(ty+oy+sz*crad).toFixed(1)}" x2="${(tx+ox+sz*srad).toFixed(1)}" y2="${(ty+oy-sz*crad).toFixed(1)}" stroke="#333" stroke-width="1.5"/>`;
+      }
+    }
+    // arc(cx,cy,r,deg1,deg2) — 호 (FIGURE용)
+    else if (!(el.match(/^arc\(/)) && (m = null)) {}
+    // vector(x1,y1,x2,y2) — 벡터 화살표 (FIGURE용)
+    else if ((m = el.match(/^vector\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const uid2 = 'fv'+Math.random().toString(36).slice(2,6);
+      g = `<defs><marker id="${uid2}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#222"/></marker></defs>` + g;
+      g += `<line x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" stroke="#222" stroke-width="1.8" marker-end="url(#${uid2})"/>`;
     }
   }
   return `<span style="display:inline-block;vertical-align:middle;margin:4px 2px"><svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="background:#fff;border:1px solid #ccc;border-radius:4px">${g}</svg></span>`;
@@ -3284,20 +3390,119 @@ const SUBJECT_SPEC = {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ▶ 수식 표현 원칙:
   - 모든 수학 기호·수식은 KaTeX 필수: 인라인 $수식$, 블록 $$수식$$
-  - 분수: $\\frac{a}{b}$ / 제곱근: $\\sqrt{x}$ / 적분: $\\int_a^b f(x)dx$ / 극한: $\\lim_{x\\to\\infty}$
-  - 수능 단답형 문제 포함 시: "답은 자연수(0~999 정수)로 구하시오." 발문
+  - 분수: $\\frac{a}{b}$ / 제곱근: $\\sqrt{x}$ / 적분: $\\int_a^b f(x)\\,dx$ / 극한: $\\lim_{x\\to a}$
+  - 벡터: $\\vec{AB}$, $\\overrightarrow{AB}$ / 절댓값: $|x|$ / 집합: $\\{1,2,3\\}$
 
-▶ 그래프·좌표 삽입:
-  - 함수 그래프 필요 시 [COORD:] 태그 활용 (좌표 명시)
-  - 또는 발문 내 "그래프를 참고하여" + 조건 텍스트로 그래프 묘사 가능
+▶ 도형·그래프 출제 원칙 (시중 문제집 수준 동일):
+  문제에 그림이 필요한 경우 반드시 [COORD:] 또는 [FIGURE:] 태그로 실제 그림을 그려라.
+  "그림 생략" 또는 텍스트 설명만으로 도형 대체 금지.
 
-▶ 표 삽입: [TABLE:헤더1|헤더2\\n값1|값2] 형식 (확률분포표·수열 등)
+■ [COORD:xmin,xmax,ymin,ymax,w,h;요소;...] — 좌표평면 위 그래프/도형
+  사용 가능 요소:
+  pt(x,y,라벨)              점         예) pt(2,3,A)
+  open_pt(x,y,라벨)         열린 점     예) open_pt(2,0,B)
+  line(x1,y1,x2,y2)        선분        예) line(0,0,3,4)
+  dline(x1,y1,x2,y2)       점선        예) dline(2,0,2,3)
+  ray(x1,y1,x2,y2)         반직선      예) ray(0,0,4,2)
+  vector(x1,y1,x2,y2)      벡터 화살표  예) vector(0,0,3,2)
+  circle(cx,cy,r)           원          예) circle(0,0,3)
+  ellipse(cx,cy,rx,ry)      타원        예) ellipse(0,0,3,2)
+  hyperbola_x(a,b,x0,x1)   좌우 쌍곡선  예) hyperbola_x(2,1,-5,5)
+  hyperbola_y(a,b,y0,y1)   상하 쌍곡선  예) hyperbola_y(2,1,-5,5)
+  parabola(a,b,c,x0,x1)    이차 포물선  예) parabola(1,0,-4,-3,3)
+  cubic(a,b,c,d,x0,x1)     삼차 함수    예) cubic(1,0,-3,0,-3,3)
+  trig(sin,A,B,C,D,x0,x1)  삼각함수    예) trig(sin,1,1,0,0,-7,7)
+  trig(cos,A,B,C,D,x0,x1)  코사인       예) trig(cos,2,1,0,0,-7,7)
+  curve(x1,y1,x2,y2,...)   꺾은선 곡선  예) curve(-2,4,0,0,2,4)
+  poly(x1,y1,x2,y2,...)    다각형       예) poly(-2,0,2,0,0,3)
+  fill_poly(x1,y1,...)      색칠 다각형
+  angle(cx,cy,r,d1,d2)     각도 호 표시 예) angle(0,0,0.5,0,90)
+  asymptote(기울기,절편,x0,x1) 점근선   예) asymptote(0.5,0,-5,5)
+  label(x,y,텍스트)         라벨        예) label(1.5,1,f(x))
+
+■ [FIGURE:w,h;요소;...] — 좌표계 없이 기하 도형만 (픽셀 좌표)
+  사용 가능 요소:
+  poly(x1,y1,x2,y2,...)    다각형 (삼각형, 사각형 등)
+  fill_poly(...)             색칠 다각형
+  circle(cx,cy,r)           원·외접원·내접원
+  ellipse(cx,cy,rx,ry)      타원
+  arc(cx,cy,r,d1,d2)        호
+  line(x1,y1,x2,y2)        선분 (수선, 중선 등)
+  dline(x1,y1,x2,y2)       점선 (연장선)
+  right_angle(x,y,크기,각도) 직각 기호
+  angle(cx,cy,r,d1,d2)     각도 호 (COORD동일)
+  tick(x,y,각도,n)          변 길이 같음 표시 (n=1단,2이중,3삼중)
+  vector(x1,y1,x2,y2)      벡터 화살표
+  pt(x,y,라벨)              점
+  label(x,y,텍스트)         텍스트 라벨
+
+▶ 단원별 필수 도형 출제 지침:
+
+【이차함수·이차방정식】
+  - 포물선: parabola(a,b,c,x0,x1)
+  - 꼭짓점·축 표시: pt(꼭짓점) + dline(축 수직선)
+  예) [COORD:xmin=-4,xmax=4,ymin=-5,ymax=5,w=220,h=220;parabola(1,0,-3,-3,3);pt(0,-3,꼭짓점);dline(0,-5,0,-3)]
+
+【직선의 방정식】
+  - 두 직선 교점: line()+line()+pt(교점)
+  예) [COORD:xmin=-3,xmax=3,ymin=-3,ymax=3,w=200,h=200;line(-3,-2,3,4);line(-3,3,3,-1);pt(0,1,P)]
+
+【원의 방정식·원과 직선】
+  - 원+접선: circle()+line()
+  - 두 원의 위치관계: circle()+circle()+pt(교점)
+  - 내접/외접 삼각형: poly()+circle()
+  예) [COORD:xmin=-5,xmax=5,ymin=-5,ymax=5,w=220,h=220;circle(0,0,3);circle(4,0,1);pt(3,0,접점)]
+
+【삼각형 기하 (FIGURE 사용)】
+  - 일반 삼각형: poly(x1,y1,x2,y2,x3,y3)
+  - 직각삼각형: poly()+right_angle(직각꼭짓점,크기,각도)
+  - 수선의 발: line(수선)+dline()+right_angle()
+  - 중선·무게중심: line(중선)+pt(무게중심)
+  - 외접원: poly()+circle()
+  - 내접원: poly()+circle(내심)
+  - 변 길이 같음: tick(변 중점,변 방향 각도,n)
+  예) [FIGURE:w=200,h=180;poly(100,20,180,160,20,160);right_angle(20,160,10,0);label(100,12,A);label(185,165,B);label(10,165,C);dline(100,20,100,160);right_angle(100,160,10,90)]
+
+【사각형·다각형 (FIGURE 사용)】
+  - 직사각형·정사각형: poly(4꼭짓점)
+  - 평행사변형: poly(4꼭짓점)
+  - 대각선: line() 또는 dline()
+  예) [FIGURE:w=200,h=160;poly(30,30,170,30,170,130,30,130);line(30,30,170,130);line(170,30,30,130)]
+
+【원과 내접 다각형 (FIGURE 사용)】
+  - 원+다각형: circle()+poly()
+  예) [FIGURE:w=200,h=200;circle(100,100,80);poly(100,20,168,160,32,160)]
+
+【타원·쌍곡선 (공통수학2)】
+  - 타원: ellipse(cx,cy,rx,ry) + pt(초점F1) + pt(초점F2)
+  - 좌우 쌍곡선: hyperbola_x(a,b,x0,x1) + asymptote(b/a,0,x0,x1) + asymptote(-b/a,0,x0,x1)
+  - 상하 쌍곡선: hyperbola_y(a,b,y0,y1)
+  예) [COORD:xmin=-5,xmax=5,ymin=-4,ymax=4,w=220,h=200;ellipse(0,0,3,2);pt(-2.24,0,F1);pt(2.24,0,F2)]
+  예) [COORD:xmin=-6,xmax=6,ymin=-5,ymax=5,w=240,h=200;hyperbola_x(2,1.5,-6,6);asymptote(0.75,0,-6,6);asymptote(-0.75,0,-6,6);pt(2.5,0,F1);pt(-2.5,0,F2)]
+
+【삼각함수 그래프】
+  - sin/cos 그래프: trig(sin,진폭,각주파수,위상,수직이동,x0,x1)
+  - 주기 표시: dline(x=주기경계) + label()
+  예) [COORD:xmin=-7,xmax=7,ymin=-3,ymax=3,w=300,h=200;trig(sin,2,1,0,0,-7,7);dline(-6.28,-3,-6.28,3);dline(0,-3,0,3);dline(6.28,-3,6.28,3);label(-3.14,2.2,T)]
+
+【벡터】
+  - 벡터 화살표: vector(x1,y1,x2,y2)
+  - 벡터 합/차 평행사변형: vector()+vector()+dline()
+  예) [COORD:xmin=-1,xmax=5,ymin=-1,ymax=4,w=200,h=180;vector(0,0,3,1);vector(0,0,1,3);vector(3,1,4,4);vector(1,3,4,4);dline(3,1,4,4);dline(1,3,4,4);label(1.5,0.2,a);label(0.2,1.5,b);label(2.5,2.8,a+b)]
+
+【수열·확률분포 표】
+  - [TABLE:] 사용: [TABLE:$n$|1|2|3|4|5\\n$a_n$|2|5|8|11|14]
+  - 확률분포표: [TABLE:$X$|0|1|2|합계\\n$P$|$\\frac{1}{4}$|$\\frac{1}{2}$|$\\frac{1}{4}$|1]
+
+▶ 표 삽입: [TABLE:헤더1|헤더2\\n값1|값2] (함수값표, 확률분포표, 수열 등)
 
 ▶ 서술형·증명형:
-  - 단계별 풀이 과정 서술 필수 (explain= 필드에 표준 풀이·부분점수 기준)
-  - 증명형: "풀이 과정을 서술하시오" 발문
+  - explain= 필드에 단계별 풀이·부분점수 기준 명시
+  - 도형 증명: 근거(정리 이름)를 각 단계에 명시
 
-⚠️ 수식 없이 텍스트만으로 수학적 표현하는 것 금지.
+⚠️ 수식 없이 텍스트만으로 수학적 표현 금지.
+⚠️ 도형·그래프 필요 문제에서 [COORD:] 또는 [FIGURE:] 생략 금지.
+⚠️ 타원·쌍곡선 문제에서 초점 위치 반드시 pt()로 표시.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </subject_directive>`,
 
@@ -4095,49 +4300,72 @@ explain=...
 - bogi_4 이상 없음 (최대 3개)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【2. 좌표평면 [COORD:...] — 좌표계가 있는 그래프·점·선분 문제】
+【2. 좌표평면 [COORD:...] — 좌표계가 있는 그래프·원·타원·쌍곡선·벡터 문제】
 text= 또는 explain= 필드 안에 인라인으로 삽입합니다.
 
 기본 형식:
-[COORD:xmin=-4,xmax=4,ymin=-3,ymax=5,w=200,h=200;요소1;요소2;...]
+[COORD:xmin=-4,xmax=4,ymin=-3,ymax=5,w=220,h=220;요소1;요소2;...]
 
 사용 가능 요소:
-  pt(x,y,라벨)         — 채운 점 + 라벨  예: pt(1,2,A)
-  open_pt(x,y,라벨)    — 빈 원(열린 점)   예: open_pt(3,0,B)
-  line(x1,y1,x2,y2)   — 선분            예: line(0,0,3,4)
-  dline(x1,y1,x2,y2)  — 점선 선분        예: dline(1,0,1,3)
-  ray(x1,y1,x2,y2)    — 반직선(화살표)   예: ray(0,0,3,2)
-  circle(cx,cy,r)      — 원             예: circle(0,0,2)
-  poly(x1,y1,...)      — 다각형          예: poly(0,0,3,0,1.5,2.6)
-  fill_poly(x1,y1,...) — 색칠 다각형      예: fill_poly(0,0,2,0,1,2)
-  parabola(a,b,c,x시작,x끝) — y=ax²+bx+c  예: parabola(1,0,-2,-3,3)
-  curve(x1,y1,x2,y2,...) — 꺾은선 곡선(점 지정) 예: curve(-2,4,-1,1,0,0,1,1,2,4)
-  label(x,y,텍스트)    — 텍스트 라벨      예: label(2,3,f(x))
-  angle(cx,cy,r,시작각,끝각) — 호 (각도 표시) 예: angle(0,0,0.4,0,90)
+  pt(x,y,라벨)              채운 점       예: pt(1,2,A)
+  open_pt(x,y,라벨)         열린 점       예: open_pt(3,0,B)
+  line(x1,y1,x2,y2)        선분          예: line(0,0,3,4)
+  dline(x1,y1,x2,y2)       점선 선분      예: dline(1,0,1,3)
+  ray(x1,y1,x2,y2)         반직선        예: ray(0,0,3,2)
+  vector(x1,y1,x2,y2)      벡터 화살표   예: vector(0,0,2,3)
+  circle(cx,cy,r)           원            예: circle(0,0,2)
+  ellipse(cx,cy,rx,ry)      타원          예: ellipse(0,0,3,2)
+  hyperbola_x(a,b,x0,x1)   좌우 쌍곡선   예: hyperbola_x(2,1.5,-5,5)
+  hyperbola_y(a,b,y0,y1)   상하 쌍곡선   예: hyperbola_y(2,1,-5,5)
+  poly(x1,y1,...)           다각형        예: poly(0,0,3,0,1.5,2.6)
+  fill_poly(x1,y1,...)      색칠 다각형   예: fill_poly(0,0,2,0,1,2)
+  parabola(a,b,c,x0,x1)    y=ax²+bx+c  예: parabola(1,0,-2,-3,3)
+  cubic(a,b,c,d,x0,x1)     y=ax³+...   예: cubic(1,0,-3,0,-3,3)
+  trig(sin,A,B,C,D,x0,x1)  sin 그래프   예: trig(sin,2,1,0,0,-7,7)
+  trig(cos,A,B,C,D,x0,x1)  cos 그래프   예: trig(cos,1,2,0,0,-7,7)
+  curve(x1,y1,x2,y2,...)   꺾은선 곡선   예: curve(-2,4,-1,1,0,0,1,1,2,4)
+  angle(cx,cy,r,d1,d2)     각도 호 표시  예: angle(0,0,0.4,0,90)
+  asymptote(기울기,절편,x0,x1) 점근선   예: asymptote(0.5,0,-5,5)
+  label(x,y,텍스트)         텍스트 라벨  예: label(2,3,f(x))
 
-예시:
-text=다음 좌표평면에서 점 A, B와 직선 $y=x$를 나타낸 것이다. [COORD:xmin=-3,xmax=3,ymin=-3,ymax=3;pt(1,2,A);pt(-1,-1,B);line(-3,-3,3,3);dline(1,0,1,2)]
+예시 (원과 직선):
+text=그림과 같이 원 $x^2+y^2=9$와 직선 $y=x+1$의 교점 A, B를 나타낸 것이다. [COORD:xmin=-5,xmax=5,ymin=-5,ymax=5,w=220,h=220;circle(0,0,3);line(-4,-3,4,5);pt(-2.12,-1.12,A);pt(0.62,1.62,B)]
+
+예시 (타원):
+text=타원 $\\frac{x^2}{9}+\\frac{y^2}{4}=1$ 위의 점과 두 초점 $F_1, F_2$을 나타낸 것이다. [COORD:xmin=-5,xmax=5,ymin=-4,ymax=4,w=220,h=200;ellipse(0,0,3,2);pt(-2.24,0,F₁);pt(2.24,0,F₂)]
+
+예시 (쌍곡선):
+text=쌍곡선 $\\frac{x^2}{4}-\\frac{y^2}{2.25}=1$과 점근선을 나타낸 것이다. [COORD:xmin=-6,xmax=6,ymin=-5,ymax=5,w=240,h=200;hyperbola_x(2,1.5,-6,6);asymptote(0.75,0,-6,6);asymptote(-0.75,0,-6,6)]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【3. 도형 그리기 [FIGURE:...] — 좌표계 없이 순수 도형 문제】
+【3. 도형 그리기 [FIGURE:...] — 좌표계 없이 순수 기하 도형 문제】
 좌표축 없이 삼각형, 사각형, 원 등 기하 도형만 표시할 때 사용합니다.
 SVG 픽셀 좌표를 직접 지정합니다. (0,0)은 좌상단, w/h가 캔버스 크기.
 
 [FIGURE:w=200,h=160;요소1;요소2;...]
 
-사용 가능 요소: (COORD와 동일하나 좌표는 픽셀 직접 지정)
-  poly(x1,y1,...)      예: poly(100,20,180,140,20,140)   ← 삼각형
-  fill_poly(...)        예: fill_poly(50,50,150,50,100,130)
-  circle(cx,cy,r)       예: circle(100,80,60)
-  line(x1,y1,x2,y2)    예: line(100,20,100,140)          ← 수선
-  dline(x1,y1,x2,y2)   예: dline(100,140,180,140)        ← 점선
-  arc(cx,cy,r,시작각도,끝각도) 예: arc(20,140,20,0,90)  ← 호
-  label(x,y,텍스트)     예: label(100,15,A)
-  pt(x,y,라벨)          예: pt(100,80,O)
-  right_angle(x,y,크기,회전각) 예: right_angle(100,140,10,0) ← 직각 기호
+사용 가능 요소:
+  poly(x1,y1,...)            다각형 (삼각형·사각형·다각형)
+  fill_poly(...)              색칠 다각형
+  circle(cx,cy,r)             원·외접원·내접원
+  ellipse(cx,cy,rx,ry)        타원
+  arc(cx,cy,r,d1,d2)          호
+  line(x1,y1,x2,y2)          선분 (수선·중선)
+  dline(x1,y1,x2,y2)         점선 (연장선)
+  right_angle(x,y,크기,각도)  직각 기호
+  tick(x,y,각도,n)            변 길이 같음 (n=1단선,2이중,3삼중)
+  vector(x1,y1,x2,y2)        벡터 화살표
+  pt(x,y,라벨)                점
+  label(x,y,텍스트)           텍스트 라벨
 
 예시 (직각삼각형):
 text=그림과 같이 직각삼각형 ABC에서 $\\overline{AB}=3$, $\\overline{BC}=4$일 때, $\\overline{AC}$의 값은? [FIGURE:w=180,h=160;poly(90,20,170,140,10,140);right_angle(10,140,10,0);label(90,12,A);label(175,148,B);label(5,148,C);label(100,148,4);label(5,80,3)]
+
+예시 (삼각형 외접원):
+text=그림과 같이 삼각형 ABC의 외접원의 반지름을 구하여라. [FIGURE:w=200,h=200;circle(100,100,80);poly(100,20,167,160,33,160);label(100,12,A);label(175,168,B);label(22,168,C);pt(100,100,O)]
+
+예시 (평행사변형):
+text=그림과 같이 평행사변형 ABCD에서 대각선의 교점을 M이라 할 때, $\\overrightarrow{AM}$을 구하여라. [FIGURE:w=220,h=160;poly(30,130,80,30,190,30,140,130);line(30,130,190,30);line(80,30,140,130);pt(110,80,M);label(20,138,A);label(70,22,B);label(200,22,C);label(150,138,D)]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【4. 표 [TABLE:...] — 함수값표, 데이터표 등】
