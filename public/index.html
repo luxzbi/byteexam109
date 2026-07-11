@@ -2219,6 +2219,70 @@ function renderCoord(raw) {
       }
       if (pts.length > 1) g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#222" stroke-width="1.5"/>`;
     }
+    // shade_parabola(a,b,c,x0,x1[,ybase]) — 포물선 y=ax²+bx+c 아래 색칠 (적분 영역)
+    else if ((m = el.match(/^shade_parabola\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [fa,fb,fc,fx0,fx1,fybase=0] = a;
+      const steps = 80;
+      const pts = [`${sx(fx0).toFixed(1)},${sy(fybase).toFixed(1)}`];
+      for (let k=0; k<=steps; k++) {
+        const xv = fx0+(fx1-fx0)*k/steps;
+        pts.push(`${sx(xv).toFixed(1)},${sy(fa*xv*xv+fb*xv+fc).toFixed(1)}`);
+      }
+      pts.push(`${sx(fx1).toFixed(1)},${sy(fybase).toFixed(1)}`);
+      g += `<polygon points="${pts.join(' ')}" fill="rgba(108,99,255,0.18)" stroke="none"/>`;
+    }
+    // shade_trig(sin|cos,A,B,C,D,x0,x1[,ybase]) — 삼각함수 아래 색칠
+    else if ((m = el.match(/^shade_trig\(([^)]+)\)/))) {
+      const segs2 = m[1].split(',');
+      const ftype = segs2[0].trim();
+      const [tA,tB,tC,tD,tx0,tx1,tybase=0] = segs2.slice(1).map(Number);
+      const steps = 120;
+      const pts = [`${sx(tx0).toFixed(1)},${sy(tybase).toFixed(1)}`];
+      for (let k=0; k<=steps; k++) {
+        const xv = tx0+(tx1-tx0)*k/steps;
+        const yv = tA*(ftype==='cos'?Math.cos(tB*xv+tC):Math.sin(tB*xv+tC))+tD;
+        pts.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+      }
+      pts.push(`${sx(tx1).toFixed(1)},${sy(tybase).toFixed(1)}`);
+      g += `<polygon points="${pts.join(' ')}" fill="rgba(108,99,255,0.18)" stroke="none"/>`;
+    }
+    // shade_exp(a,b,x0,x1[,ybase]) — 지수함수 아래 색칠
+    else if ((m = el.match(/^shade_exp\(([^)]+)\)/))) {
+      const [ea,eb,ex0,ex1,eybase=0] = m[1].split(',').map(Number);
+      const steps = 100;
+      const pts = [`${sx(ex0).toFixed(1)},${sy(eybase).toFixed(1)}`];
+      for (let k=0; k<=steps; k++) {
+        const xv = ex0+(ex1-ex0)*k/steps;
+        const yv = Math.pow(ea,eb*xv);
+        if (isFinite(yv) && yv >= ymin-1 && yv <= ymax+1) pts.push(`${sx(xv).toFixed(1)},${sy(yv).toFixed(1)}`);
+      }
+      pts.push(`${sx(ex1).toFixed(1)},${sy(eybase).toFixed(1)}`);
+      g += `<polygon points="${pts.join(' ')}" fill="rgba(108,99,255,0.18)" stroke="none"/>`;
+    }
+    // shade_between(a1,b1,c1,a2,b2,c2,x0,x1) — 두 포물선 사이 영역 색칠
+    else if ((m = el.match(/^shade_between\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [fa1,fb1,fc1,fa2,fb2,fc2,fx0,fx1] = a;
+      const steps = 80;
+      const ptsTop=[], ptsBot=[];
+      for (let k=0; k<=steps; k++) {
+        const xv = fx0+(fx1-fx0)*k/steps;
+        const y1v = fa1*xv*xv+fb1*xv+fc1, y2v = fa2*xv*xv+fb2*xv+fc2;
+        ptsTop.push(`${sx(xv).toFixed(1)},${sy(Math.max(y1v,y2v)).toFixed(1)}`);
+        ptsBot.push(`${sx(xv).toFixed(1)},${sy(Math.min(y1v,y2v)).toFixed(1)}`);
+      }
+      g += `<polygon points="${ptsTop.join(' ')} ${[...ptsBot].reverse().join(' ')}" fill="rgba(108,99,255,0.18)" stroke="none"/>`;
+    }
+    // shade_curve(x1,y1,x2,y2,...[,ybase=0]) — 점 연결 곡선 아래 색칠
+    else if ((m = el.match(/^shade_curve\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const fx0 = a[0], fx1 = a[a.length-2];
+      const pts = [`${sx(fx0).toFixed(1)},${sy(0).toFixed(1)}`];
+      for (let j=0; j<a.length; j+=2) pts.push(`${sx(a[j]).toFixed(1)},${sy(a[j+1]).toFixed(1)}`);
+      pts.push(`${sx(fx1).toFixed(1)},${sy(0).toFixed(1)}`);
+      g += `<polygon points="${pts.join(' ')}" fill="rgba(108,99,255,0.18)" stroke="none"/>`;
+    }
     // tick_coord(x,y,angle_deg,n) — COORD 좌표계에서 변 길이 같음 표시
     else if ((m = el.match(/^tick_coord\(([^)]+)\)/))) {
       const [tcx,tcy,tcang,tcn2] = m[1].split(',').map(Number);
@@ -2377,6 +2441,177 @@ function renderFigure(raw) {
   return `<span style="display:inline-block;vertical-align:middle;margin:4px 2px"><svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="background:#fff;border:1px solid #ccc;border-radius:4px">${g}</svg></span>`;
 }
 
+// ── 3D 도형 렌더러 [FIGURE3D:...] — 사축투영(oblique projection) ──────────
+function renderFigure3D(raw) {
+  const segs = raw.split(';');
+  const params = {};
+  (segs[0]||'').split(',').forEach(kv => {
+    const eq = kv.indexOf('=');
+    if (eq > 0) params[kv.slice(0,eq).trim()] = kv.slice(eq+1).trim();
+  });
+  const W   = parseFloat(params.w     ?? 220);
+  const H   = parseFloat(params.h     ?? 200);
+  const sc  = parseFloat(params.scale ?? 32);   // 단위당 픽셀
+  const ox  = parseFloat(params.ox    ?? W*0.28);
+  const oy  = parseFloat(params.oy    ?? H*0.75);
+  const ang = parseFloat(params.ang   ?? 30) * Math.PI / 180; // z축 각도
+  const ob  = parseFloat(params.ob    ?? 0.5);  // 사축 비율
+
+  // 3D(x,y,z) → 2D SVG 픽셀 (사축투영)
+  const p3 = (x,y,z) => ({
+    px: ox + x*sc + z*ob*sc*Math.cos(ang),
+    py: oy - y*sc + z*ob*sc*Math.sin(ang)
+  });
+  const pt = v => `${v.px.toFixed(1)},${v.py.toFixed(1)}`;
+
+  let g = '';
+  for (let i = 1; i < segs.length; i++) {
+    const el = segs[i].trim();
+    let m;
+
+    // box(x,y,z,w,h,d[,color]) — 직육면체 (x,y,z: 전하좌하모서리, w:너비, h:높이, d:깊이)
+    if ((m = el.match(/^box\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [bx,by,bz,bw,bh,bd] = a;
+      const v = [
+        p3(bx,    by,    bz),     // 0 전하좌
+        p3(bx+bw, by,    bz),     // 1 전하우
+        p3(bx+bw, by+bh, bz),     // 2 전상우
+        p3(bx,    by+bh, bz),     // 3 전상좌
+        p3(bx,    by,    bz+bd),  // 4 후하좌
+        p3(bx+bw, by,    bz+bd),  // 5 후하우
+        p3(bx+bw, by+bh, bz+bd),  // 6 후상우
+        p3(bx,    by+bh, bz+bd),  // 7 후상좌
+      ];
+      // 앞면
+      g += `<polygon points="${pt(v[0])} ${pt(v[1])} ${pt(v[2])} ${pt(v[3])}" fill="rgba(235,235,255,0.7)" stroke="#222" stroke-width="1.5"/>`;
+      // 우측면
+      g += `<polygon points="${pt(v[1])} ${pt(v[5])} ${pt(v[6])} ${pt(v[2])}" fill="rgba(210,210,240,0.7)" stroke="#222" stroke-width="1.5"/>`;
+      // 윗면
+      g += `<polygon points="${pt(v[3])} ${pt(v[2])} ${pt(v[6])} ${pt(v[7])}" fill="rgba(220,220,248,0.7)" stroke="#222" stroke-width="1.5"/>`;
+      // 숨은 모서리 (점선)
+      g += `<line x1="${v[0].px.toFixed(1)}" y1="${v[0].py.toFixed(1)}" x2="${v[4].px.toFixed(1)}" y2="${v[4].py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+      g += `<line x1="${v[4].px.toFixed(1)}" y1="${v[4].py.toFixed(1)}" x2="${v[5].px.toFixed(1)}" y2="${v[5].py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+      g += `<line x1="${v[4].px.toFixed(1)}" y1="${v[4].py.toFixed(1)}" x2="${v[7].px.toFixed(1)}" y2="${v[7].py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+    }
+    // sphere(x,y,z,r) — 구
+    else if ((m = el.match(/^sphere\(([^)]+)\)/))) {
+      const [sx2,sy2,sz2,sr] = m[1].split(',').map(Number);
+      const c = p3(sx2,sy2,sz2);
+      const rpx = sr*sc;
+      g += `<circle cx="${c.px.toFixed(1)}" cy="${c.py.toFixed(1)}" r="${rpx.toFixed(1)}" fill="rgba(220,220,250,0.35)" stroke="#222" stroke-width="1.5"/>`;
+      // 적도 타원 (점선)
+      const ery = rpx*ob*Math.sin(ang)*1.3;
+      g += `<ellipse cx="${c.px.toFixed(1)}" cy="${c.py.toFixed(1)}" rx="${rpx.toFixed(1)}" ry="${Math.max(ery,rpx*0.25).toFixed(1)}" fill="none" stroke="#777" stroke-width="1" stroke-dasharray="5,3"/>`;
+    }
+    // cone(x,y,z,r,h) — 원뿔 (밑면중심: x,y,z / r: 반지름 / h: 높이)
+    else if ((m = el.match(/^cone\(([^)]+)\)/))) {
+      const [cx2,cy2,cz2,cr,ch] = m[1].split(',').map(Number);
+      const base = p3(cx2,cy2,cz2);
+      const apex2 = p3(cx2,cy2+ch,cz2);
+      const rpx = cr*sc;
+      const ery = rpx*ob*Math.sin(ang)*1.3;
+      const ery2 = Math.max(ery, rpx*0.3);
+      // 밑면 타원
+      g += `<ellipse cx="${base.px.toFixed(1)}" cy="${base.py.toFixed(1)}" rx="${rpx.toFixed(1)}" ry="${ery2.toFixed(1)}" fill="rgba(210,210,240,0.4)" stroke="#222" stroke-width="1.5"/>`;
+      // 모선 (좌우)
+      g += `<line x1="${(base.px-rpx).toFixed(1)}" y1="${base.py.toFixed(1)}" x2="${apex2.px.toFixed(1)}" y2="${apex2.py.toFixed(1)}" stroke="#222" stroke-width="1.5"/>`;
+      g += `<line x1="${(base.px+rpx).toFixed(1)}" y1="${base.py.toFixed(1)}" x2="${apex2.px.toFixed(1)}" y2="${apex2.py.toFixed(1)}" stroke="#222" stroke-width="1.5"/>`;
+      // 후면 모선 (점선)
+      g += `<line x1="${base.px.toFixed(1)}" y1="${(base.py-ery2).toFixed(1)}" x2="${apex2.px.toFixed(1)}" y2="${apex2.py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+    }
+    // cylinder(x,y,z,r,h) — 원기둥
+    else if ((m = el.match(/^cylinder\(([^)]+)\)/))) {
+      const [cx2,cy2,cz2,cr,ch] = m[1].split(',').map(Number);
+      const base = p3(cx2,cy2,cz2);
+      const top2 = p3(cx2,cy2+ch,cz2);
+      const rpx = cr*sc;
+      const ery2 = Math.max(rpx*ob*Math.sin(ang)*1.3, rpx*0.3);
+      // 옆면
+      g += `<rect x="${(base.px-rpx).toFixed(1)}" y="${top2.py.toFixed(1)}" width="${(2*rpx).toFixed(1)}" height="${(base.py-top2.py).toFixed(1)}" fill="rgba(220,220,248,0.5)" stroke="#222" stroke-width="1.5"/>`;
+      // 밑면 타원 (점선 반)
+      g += `<ellipse cx="${base.px.toFixed(1)}" cy="${base.py.toFixed(1)}" rx="${rpx.toFixed(1)}" ry="${ery2.toFixed(1)}" fill="rgba(200,200,235,0.4)" stroke="#222" stroke-width="1.5"/>`;
+      // 윗면 타원
+      g += `<ellipse cx="${top2.px.toFixed(1)}" cy="${top2.py.toFixed(1)}" rx="${rpx.toFixed(1)}" ry="${ery2.toFixed(1)}" fill="rgba(230,230,255,0.7)" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // pyramid4(x,y,z,size,h) — 정사각뿔
+    else if ((m = el.match(/^pyramid4\(([^)]+)\)/))) {
+      const [px2,py2,pz2,psize,ph] = m[1].split(',').map(Number);
+      const hs = psize/2;
+      const b = [
+        p3(px2-hs,py2,pz2-hs), p3(px2+hs,py2,pz2-hs),
+        p3(px2+hs,py2,pz2+hs), p3(px2-hs,py2,pz2+hs),
+      ];
+      const apex2 = p3(px2,py2+ph,pz2);
+      // 밑면
+      g += `<polygon points="${b.map(pt).join(' ')}" fill="rgba(210,210,235,0.4)" stroke="#222" stroke-width="1.5"/>`;
+      // 가시 면
+      g += `<polygon points="${pt(b[0])} ${pt(b[1])} ${pt(apex2)}" fill="rgba(200,200,240,0.55)" stroke="#222" stroke-width="1.5"/>`;
+      g += `<polygon points="${pt(b[1])} ${pt(b[2])} ${pt(apex2)}" fill="rgba(185,185,230,0.55)" stroke="#222" stroke-width="1.5"/>`;
+      // 숨은 모서리
+      g += `<line x1="${b[3].px.toFixed(1)}" y1="${b[3].py.toFixed(1)}" x2="${apex2.px.toFixed(1)}" y2="${apex2.py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+      g += `<line x1="${b[0].px.toFixed(1)}" y1="${b[0].py.toFixed(1)}" x2="${apex2.px.toFixed(1)}" y2="${apex2.py.toFixed(1)}" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // prism3(ax,ay,az,bx,by,bz,cx,cy,cz,h) — 삼각기둥 (밑면 3꼭짓점 + 높이)
+    else if ((m = el.match(/^prism3\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const [ax2,ay2,az2,tbx,tby,tbz,tcx2,tcy2,tcz2,th] = a;
+      const b1 = [p3(ax2,ay2,az2), p3(tbx,tby,tbz), p3(tcx2,tcy2,tcz2)];
+      const b2 = [p3(ax2,ay2+th,az2), p3(tbx,tby+th,tbz), p3(tcx2,tcy2+th,tcz2)];
+      // 밑면 (점선)
+      g += `<polygon points="${b1.map(pt).join(' ')}" fill="none" stroke="#777" stroke-width="1" stroke-dasharray="4,3"/>`;
+      // 수직 모서리
+      for (let k=0; k<3; k++) {
+        const dash = k===0;
+        g += `<line x1="${b1[k].px.toFixed(1)}" y1="${b1[k].py.toFixed(1)}" x2="${b2[k].px.toFixed(1)}" y2="${b2[k].py.toFixed(1)}" stroke="${dash?'#777':'#222'}" stroke-width="${dash?1:1.5}" ${dash?'stroke-dasharray="4,3"':""}/>`;
+      }
+      // 옆면 2개
+      g += `<polygon points="${pt(b1[1])} ${pt(b1[2])} ${pt(b2[2])} ${pt(b2[1])}" fill="rgba(205,205,238,0.55)" stroke="#222" stroke-width="1.5"/>`;
+      g += `<polygon points="${pt(b1[0])} ${pt(b1[1])} ${pt(b2[1])} ${pt(b2[0])}" fill="rgba(215,215,245,0.55)" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+      // 윗면
+      g += `<polygon points="${b2.map(pt).join(' ')}" fill="rgba(225,225,252,0.7)" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // tetrahedron(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz) — 사면체 (4꼭짓점)
+    else if ((m = el.match(/^tetrahedron\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const v = [p3(a[0],a[1],a[2]), p3(a[3],a[4],a[5]), p3(a[6],a[7],a[8]), p3(a[9],a[10],a[11])];
+      // 밑면 삼각형 (숨은)
+      g += `<polygon points="${pt(v[0])} ${pt(v[1])} ${pt(v[2])}" fill="none" stroke="#777" stroke-width="1" stroke-dasharray="4,3"/>`;
+      // 가시 면들
+      g += `<polygon points="${pt(v[0])} ${pt(v[1])} ${pt(v[3])}" fill="rgba(210,210,245,0.55)" stroke="#222" stroke-width="1.5"/>`;
+      g += `<polygon points="${pt(v[1])} ${pt(v[2])} ${pt(v[3])}" fill="rgba(195,195,235,0.55)" stroke="#222" stroke-width="1.5"/>`;
+      g += `<polygon points="${pt(v[0])} ${pt(v[2])} ${pt(v[3])}" fill="rgba(220,220,250,0.4)" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+    }
+    // line3d(x1,y1,z1,x2,y2,z2) — 3D 실선
+    else if ((m = el.match(/^line3d\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const p1 = p3(a[0],a[1],a[2]), p2 = p3(a[3],a[4],a[5]);
+      g += `<line x1="${p1.px.toFixed(1)}" y1="${p1.py.toFixed(1)}" x2="${p2.px.toFixed(1)}" y2="${p2.py.toFixed(1)}" stroke="#222" stroke-width="1.5"/>`;
+    }
+    // dline3d(x1,y1,z1,x2,y2,z2) — 3D 점선
+    else if ((m = el.match(/^dline3d\(([^)]+)\)/))) {
+      const a = m[1].split(',').map(Number);
+      const p1 = p3(a[0],a[1],a[2]), p2 = p3(a[3],a[4],a[5]);
+      g += `<line x1="${p1.px.toFixed(1)}" y1="${p1.py.toFixed(1)}" x2="${p2.px.toFixed(1)}" y2="${p2.py.toFixed(1)}" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>`;
+    }
+    // pt3d(x,y,z,라벨) — 3D 점
+    else if ((m = el.match(/^pt3d\(([^)]+)\)/))) {
+      const a = m[1].split(',');
+      const p2 = p3(parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]));
+      const lbl = (a[3]||'').replace(/['"]/g,'').trim();
+      g += `<circle cx="${p2.px.toFixed(1)}" cy="${p2.py.toFixed(1)}" r="3" fill="#222"/>`;
+      if (lbl) g += `<text x="${(p2.px+5).toFixed(1)}" y="${(p2.py-3).toFixed(1)}" font-size="12" font-weight="bold" fill="#222">${esc(lbl)}</text>`;
+    }
+    // label3d(x,y,z,텍스트) — 3D 텍스트 라벨
+    else if ((m = el.match(/^label3d\(([^,]+),([^,]+),([^,]+),(.+)\)/))) {
+      const p2 = p3(parseFloat(m[1]),parseFloat(m[2]),parseFloat(m[3]));
+      const txt = m[4].replace(/['"]/g,'').trim();
+      g += `<text x="${p2.px.toFixed(1)}" y="${p2.py.toFixed(1)}" font-size="12" font-weight="bold" fill="#222" text-anchor="middle">${esc(txt)}</text>`;
+    }
+  }
+  return `<span style="display:inline-block;vertical-align:middle;margin:4px 2px"><svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="background:#fff;border:1px solid #ccc;border-radius:4px">${g}</svg></span>`;
+}
+
 // ── 지문박스 렌더러 [PASSAGE:...] ──────────────────────────────────────────
 function renderPassage(raw) {
   // 첫 줄이 짧으면(50자 이하) 제목으로 처리, 나머지는 지문
@@ -2387,21 +2622,22 @@ function renderPassage(raw) {
   return `<div style="border:1.5px solid #999;border-radius:4px;padding:12px 14px;margin:8px 0;background:#fafafa;font-size:13px;line-height:1.9;color:#111;white-space:pre-wrap;word-break:break-word">${titleHtml}${esc(body)}</div>`;
 }
 
-// 수식($...$, $$...$$)·SMILES([SMILES:...])·[COORD:...]·[TABLE:...]·[FIGURE:...]·[PASSAGE:...]를 HTML로 변환
+// 수식($...$, $$...$$)·SMILES·[COORD:]·[TABLE:]·[FIGURE:]·[FIGURE3D:]·[PASSAGE:]를 HTML로 변환
 function _escWithMathCore(str) {
   if (!str) return '';
   const s = String(str);
   const parts = [];
-  const re = /(\[COORD:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[TABLE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[FIGURE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[PASSAGE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[SMILES:([^\]]+)\]|\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;
+  const re = /(\[COORD:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[TABLE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[FIGURE3D:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[FIGURE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[PASSAGE:[^\]]*(?:\[[^\]]*\][^\]]*)*\]|\[SMILES:([^\]]+)\]|\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;
   let last = 0, m;
   while ((m = re.exec(s)) !== null) {
     if (m.index > last) parts.push({ t:'text', v: s.slice(last, m.index) });
     const raw = m[1];
-    if (raw.startsWith('[SMILES:'))        parts.push({ t:'smiles',   v: m[2] });
-    else if (raw.startsWith('[COORD:'))    parts.push({ t:'coord',    v: raw.slice(7, -1) });
-    else if (raw.startsWith('[TABLE:'))    parts.push({ t:'table',    v: raw.slice(7, -1) });
-    else if (raw.startsWith('[FIGURE:'))   parts.push({ t:'figure',   v: raw.slice(8, -1) });
-    else if (raw.startsWith('[PASSAGE:'))  parts.push({ t:'passage',  v: raw.slice(9, -1) });
+    if (raw.startsWith('[SMILES:'))        parts.push({ t:'smiles',    v: m[2] });
+    else if (raw.startsWith('[COORD:'))    parts.push({ t:'coord',     v: raw.slice(7, -1) });
+    else if (raw.startsWith('[TABLE:'))    parts.push({ t:'table',     v: raw.slice(7, -1) });
+    else if (raw.startsWith('[FIGURE3D:')) parts.push({ t:'figure3d',  v: raw.slice(10, -1) });
+    else if (raw.startsWith('[FIGURE:'))   parts.push({ t:'figure',    v: raw.slice(8, -1) });
+    else if (raw.startsWith('[PASSAGE:'))  parts.push({ t:'passage',   v: raw.slice(9, -1) });
     else {
       const display = raw.startsWith('$$');
       parts.push({ t:'math', v: display ? raw.slice(2,-2) : raw.slice(1,-1), display });
@@ -2413,10 +2649,11 @@ function _escWithMathCore(str) {
   return parts.map(p => {
     if (p.t === 'text')   return esc(p.v);
     if (p.t === 'smiles') return renderSmiles(p.v, document.body.classList.contains('dark')||true);
-    if (p.t === 'coord')  return renderCoord(p.v);
-    if (p.t === 'table')  return renderTable(p.v);
-    if (p.t === 'figure')  return renderFigure(p.v);
-    if (p.t === 'passage') return renderPassage(p.v);
+    if (p.t === 'coord')    return renderCoord(p.v);
+    if (p.t === 'table')    return renderTable(p.v);
+    if (p.t === 'figure3d') return renderFigure3D(p.v);
+    if (p.t === 'figure')   return renderFigure(p.v);
+    if (p.t === 'passage')  return renderPassage(p.v);
     try {
       if (typeof katex !== 'undefined')
         return katex.renderToString(p.v, { displayMode: p.display, throwOnError: false, macros: KATEX_MACROS });
@@ -3578,6 +3815,34 @@ const SUBJECT_SPEC = {
   - [TABLE:] 사용: [TABLE:$n$|1|2|3|4|5\\n$a_n$|2|5|8|11|14]
   - 확률분포표: [TABLE:$X$|0|1|2|합계\\n$P$|$\\frac{1}{4}$|$\\frac{1}{2}$|$\\frac{1}{4}$|1]
 
+【3D 도형 (공간도형 단원) — [FIGURE3D:] 사용】
+  기본 형식: [FIGURE3D:w=220,h=200,scale=32;요소;...]
+  사용 가능 요소 (3D 단위 좌표 사용):
+  box(x,y,z,w,h,d)              직육면체 (숨은 모서리 자동 점선)
+  sphere(x,y,z,r)               구 (적도 타원 자동 표시)
+  cone(x,y,z,r,h)               원뿔
+  cylinder(x,y,z,r,h)           원기둥
+  pyramid4(x,y,z,size,h)        정사각뿔
+  prism3(ax,ay,az,bx,by,bz,cx,cy,cz,h) 삼각기둥
+  tetrahedron(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz) 사면체(정사면체)
+  line3d(x1,y1,z1,x2,y2,z2)     3D 실선
+  dline3d(x1,y1,z1,x2,y2,z2)    3D 점선 (숨은 선)
+  pt3d(x,y,z,라벨)              3D 점 + 라벨
+  label3d(x,y,z,텍스트)          3D 텍스트 라벨
+  예) [FIGURE3D:w=220,h=200,scale=30;box(0,0,0,3,2,2);pt3d(0,0,0,A);pt3d(3,0,0,B);pt3d(3,2,0,C);pt3d(0,2,0,D);label3d(1.5,1,0,직육면체)]
+  예) [FIGURE3D:w=200,h=200,scale=35;sphere(0,0,0,2);pt3d(0,0,0,O)]
+  예) [FIGURE3D:w=200,h=220,scale=28;cone(0,0,0,2,4);pt3d(0,4,0,A);label3d(0,0,0,O)]
+  예) [FIGURE3D:w=220,h=200,scale=30;prism3(-1,0,-1,1,0,-1,0,0,1,3);label3d(-1,0,-1,A);label3d(1,0,-1,B);label3d(0,0,1,C)]
+
+【적분·넓이 색칠 영역 (수2)】
+  shade_parabola(a,b,c,x0,x1[,ybase])   포물선 아래 색칠 (ybase 기본값=0)
+  shade_trig(sin|cos,A,B,C,D,x0,x1)     삼각함수 아래 색칠
+  shade_exp(a,b,x0,x1[,ybase])           지수함수 아래 색칠
+  shade_between(a1,b1,c1,a2,b2,c2,x0,x1) 두 포물선 사이 색칠
+  shade_curve(x1,y1,x2,y2,...)           꺾은선 곡선 아래 색칠
+  ※ shade_* 먼저 그리고, 그 위에 curve/parabola/trig 선 겹쳐 그릴 것
+  예) [COORD:xmin=-1,xmax=4,ymin=-1,ymax=5,w=220,h=200;shade_parabola(1,0,0,0,2);parabola(1,0,0,-1,3);dline(2,0,2,4);label(1,0.5,S)]
+
 ▶ 표 삽입: [TABLE:헤더1|헤더2\\n값1|값2] (함수값표, 확률분포표, 수열 등)
 
 ▶ 서술형·증명형:
@@ -3585,8 +3850,9 @@ const SUBJECT_SPEC = {
   - 도형 증명: 근거(정리 이름)를 각 단계에 명시
 
 ⚠️ 수식 없이 텍스트만으로 수학적 표현 금지.
-⚠️ 도형·그래프 필요 문제에서 [COORD:] 또는 [FIGURE:] 생략 금지.
-⚠️ 타원·쌍곡선 문제에서 초점 위치 반드시 pt()로 표시.
+⚠️ 도형·그래프 필요 문제에서 [COORD:]/[FIGURE:]/[FIGURE3D:] 생략 금지.
+⚠️ 3D 도형 문제(공간도형)는 반드시 [FIGURE3D:] 사용. FIGURE(2D)로 대체 금지.
+⚠️ 적분 넓이 문제는 shade_* + 곡선 겹쳐 그리기 조합 필수.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </subject_directive>`,
 
@@ -4457,7 +4723,54 @@ text=그림과 같이 삼각형 ABC의 외접원의 반지름을 구하여라. [
 text=그림과 같이 평행사변형 ABCD에서 대각선의 교점을 M이라 할 때, $\\overrightarrow{AM}$을 구하여라. [FIGURE:w=220,h=160;poly(30,130,80,30,190,30,140,130);line(30,130,190,30);line(80,30,140,130);pt(110,80,M);label(20,138,A);label(70,22,B);label(200,22,C);label(150,138,D)]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【4. 표 [TABLE:...] — 함수값표, 데이터표 등】
+【4. 3D 도형 [FIGURE3D:...] — 공간도형 (직육면체·구·원뿔·원기둥·각뿔·각기둥·사면체)】
+사축투영(oblique projection)으로 3D 도형을 자동으로 그립니다.
+숨은 모서리는 자동 점선 처리됩니다.
+
+기본 형식:
+[FIGURE3D:w=220,h=200,scale=30;요소;...]
+  scale: 단위당 픽셀 (기본 32), ox/oy: 원점 위치, ang: z축 각도(기본 30°), ob: 사축 비율(기본 0.5)
+
+사용 가능 요소:
+  box(x,y,z,w,h,d)                          직육면체    예: box(0,0,0,3,2,2)
+  sphere(x,y,z,r)                            구          예: sphere(0,0,0,2)
+  cone(x,y,z,r,h)                            원뿔        예: cone(0,0,0,2,3)
+  cylinder(x,y,z,r,h)                        원기둥      예: cylinder(0,0,0,1.5,4)
+  pyramid4(x,y,z,size,h)                     정사각뿔    예: pyramid4(0,0,0,3,4)
+  prism3(ax,ay,az,bx,by,bz,cx,cy,cz,h)      삼각기둥    예: prism3(-1,0,-1,1,0,-1,0,0,1,3)
+  tetrahedron(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz) 사면체 예: tetrahedron(0,0,0,2,0,0,1,2,0,1,1,2)
+  line3d(x1,y1,z1,x2,y2,z2)                 실선        예: line3d(0,0,0,3,0,0)
+  dline3d(x1,y1,z1,x2,y2,z2)               점선        예: dline3d(0,0,0,0,0,2)
+  pt3d(x,y,z,라벨)                           점          예: pt3d(0,2,0,A)
+  label3d(x,y,z,텍스트)                      라벨        예: label3d(1.5,1,0,O)
+
+예시 (직육면체):
+text=그림과 같이 직육면체 ABCD-EFGH에서 꼭짓점 A에서 대각선 AG의 길이를 구하여라. [FIGURE3D:w=230,h=210,scale=32;box(0,0,0,3,2,2);pt3d(0,0,0,A);pt3d(3,0,0,B);pt3d(3,2,0,C);pt3d(0,2,0,D);pt3d(0,0,2,E);pt3d(3,0,2,F);pt3d(3,2,2,G);pt3d(0,2,2,H);dline3d(0,0,0,3,2,2)]
+
+예시 (원뿔):
+text=그림과 같이 밑면의 반지름이 3이고 높이가 4인 원뿔의 부피를 구하여라. [FIGURE3D:w=200,h=220,scale=28;cone(0,0,0,3,4);pt3d(0,4,0,A);pt3d(0,0,0,O);dline3d(0,0,0,3,0,0);label3d(1.5,0.3,0,r=3);dline3d(0,0,0,0,4,0);label3d(-0.7,2,0,h=4)]
+
+예시 (정사면체):
+text=한 모서리의 길이가 2인 정사면체의 높이를 구하여라. [FIGURE3D:w=200,h=200,scale=40;tetrahedron(0,0,0,2,0,0,1,0,1.73,1,1.63,0.82);pt3d(0,0,0,A);pt3d(2,0,0,B);pt3d(1,0,1.73,C);pt3d(1,1.63,0.82,D)]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【5. 적분 색칠 영역 — shade_*(...)로 먼저 그린 뒤 곡선 겹쳐 그리기】
+※ [COORD:] 안에서 shade_* 요소를 다른 곡선보다 앞에 배치해야 올바르게 표시됩니다.
+
+  shade_parabola(a,b,c,x0,x1[,ybase])   포물선 y=ax²+bx+c 아래 색칠
+  shade_trig(sin|cos,A,B,C,D,x0,x1)     삼각함수 아래 색칠
+  shade_exp(a,b,x0,x1[,ybase])           지수함수 아래 색칠
+  shade_between(a1,b1,c1,a2,b2,c2,x0,x1) 두 포물선 사이 영역 색칠
+  shade_curve(x1,y1,x2,y2,...)           꺾은선 아래 색칠
+
+예시 (포물선 넓이):
+text=그림과 같이 곡선 $y=x^2$와 직선 $y=4$ 사이의 넓이 S를 구하여라. [COORD:xmin=-3,xmax=3,ymin=-1,ymax=6,w=220,h=220;shade_between(-1,0,4,1,0,0,-2,2);parabola(1,0,0,-2.5,2.5);line(-3,4,3,4);label(0,2,S)]
+
+예시 (삼각함수 넓이):
+text=그림과 같이 $0 \\leq x \\leq \\pi$에서 곡선 $y=\\sin x$ 아래 넓이 S를 구하여라. [COORD:xmin=-0.5,xmax=4,ymin=-0.5,ymax=1.5,w=250,h=180;shade_trig(sin,1,1,0,0,0,3.14);trig(sin,1,1,0,0,-0.5,3.7);label(1.57,0.5,S)]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【6. 표 [TABLE:...] — 함수값표, 데이터표 등】
 [TABLE:헤더1|헤더2|헤더3\n값1|값2|값3\n값4|값5|값6]
 
   - 열 구분: | (파이프)
