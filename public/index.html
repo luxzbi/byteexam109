@@ -714,6 +714,35 @@ nav{display:none!important}
 .ggb-foot input[type=number]{width:60px;padding:3px 6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--text);font-size:12px;text-align:center;font-family:inherit}
 #ggbInsertBtn{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
 #ggbInsertBtn:hover{background:#5b53ee}
+/* 도형 삽입 모달 */
+#figureOverlay{display:none;position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.75);align-items:center;justify-content:center}
+#figureOverlay.open{display:flex}
+#figurePanel{background:#1a1a26;border-radius:14px;box-shadow:0 32px 96px rgba(0,0,0,.9);display:flex;flex-direction:column;width:820px;max-width:calc(100vw - 24px);max-height:calc(100vh - 36px);overflow:hidden}
+.fig-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);background:#111118;flex-shrink:0}
+.fig-hdr h3{font-size:13px;font-weight:700;color:var(--text);margin:0}
+.fig-tab-btn{padding:4px 13px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;transition:all .15s}
+.fig-tab-btn.active{background:rgba(108,99,255,.25);border-color:rgba(108,99,255,.5);color:#a78bfa}
+.fig-body{display:flex;flex:1;min-height:0;gap:0}
+.fig-left{flex:1;min-width:0;display:flex;flex-direction:column;padding:12px;gap:8px;overflow-y:auto}
+.fig-preview{flex:0 0 340px;background:#111118;border-left:1px solid rgba(255,255,255,.07);padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.fig-preview-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.5px}
+.fig-preview-box{background:#fff;border-radius:8px;min-height:180px;display:flex;align-items:center;justify-content:center;padding:8px;overflow:auto}
+.fig-code{width:100%;padding:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--text);font-size:11px;font-family:'Courier New',monospace;resize:vertical;box-sizing:border-box;outline:none}
+.fig-code:focus{border-color:var(--accent)}
+.fig-quick-btns{display:flex;flex-wrap:wrap;gap:4px}
+.fig-q-btn{padding:3px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:rgba(255,255,255,.55);font-size:10px;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap}
+.fig-q-btn:hover{background:rgba(108,99,255,.15);border-color:rgba(108,99,255,.4);color:#a78bfa}
+.fig-hint{font-size:10px;color:rgba(255,255,255,.25);line-height:1.7}
+.fig-foot{display:flex;align-items:center;gap:10px;padding:9px 16px;border-top:1px solid rgba(255,255,255,.07);background:#111118;flex-shrink:0}
+#figInsertBtn{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+#figInsertBtn:hover{background:#5b53ee}
+.fig-size-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.fig-size-row input[type=number]{width:58px;padding:3px 6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--text);font-size:12px;text-align:center;font-family:inherit}
+[data-theme="light"] #figurePanel{background:#f4f4f9}
+[data-theme="light"] .fig-hdr,[data-theme="light"] .fig-foot{background:#ebebf2;border-color:#ddd}
+[data-theme="light"] .fig-preview{background:#ebebf2;border-left-color:#ddd}
+[data-theme="light"] .fig-code{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:#111}
+[data-theme="light"] .fig-q-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.5)}
 /* 라이트모드: AI 위자드 패널 */
 [data-theme="light"] #aiGenPanel{background:#fff;border-top-color:#ddd}
 [data-theme="light"] .aig-header{background:#f6f6fa;border-bottom-color:#e0e0e8}
@@ -749,11 +778,12 @@ nav{display:none!important}
 [data-theme="light"] #rpApplyBtn:disabled{background:rgba(0,0,0,.08);color:rgba(0,0,0,.28)}
 [data-theme="light"] #rpStatus{color:rgba(0,0,0,.35)}
 [data-theme="light"] .rp-sep{background:rgba(0,0,0,.07)}
-[data-theme="light"] #rpGraphBtn{background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.2)}
+[data-theme="light"] #rpGraphBtn,[data-theme="light"] #rpFigureBtn{background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.2)}
 
 /* 오른쪽 패널 그래프 버튼 */
-#rpGraphBtn{width:100%;margin-top:6px;padding:7px;background:rgba(108,99,255,.12);color:#a78bfa;border:1px solid rgba(108,99,255,.25);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
-#rpGraphBtn:hover{background:rgba(108,99,255,.22)}
+#rpGraphBtn,#rpFigureBtn{flex:1;padding:7px;background:rgba(108,99,255,.12);color:#a78bfa;border:1px solid rgba(108,99,255,.25);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+#rpGraphBtn:hover,#rpFigureBtn:hover{background:rgba(108,99,255,.22)}
+.rp-btn-row{display:flex;gap:6px;margin-top:6px;width:100%}
 
 /* ═══ 라이트 모드 에디터 오버라이드 ═══ */
 [data-theme="light"] #toolbar{background:#ffffff;border-bottom:1px solid #ddd}
@@ -953,7 +983,7 @@ nav{display:none!important}
         <stop stop-color="#6c63ff"/><stop offset="1" stop-color="#a78bfa"/>
       </linearGradient></defs>
     </svg>
-    byteexam <span class="badge">1s</span><span id="tbDshs" style="font-size:.6rem;font-weight:400;letter-spacing:.06em;margin-left:5px">for dshs</span>
+    byteexam <span class="badge">2.1s</span><span id="tbDshs" style="font-size:.6rem;font-weight:400;letter-spacing:.06em;margin-left:5px">for dshs</span>
   </a>
   <div class="tb-div"></div>
   <span id="tbExamTitle">시험지를 선택하세요</span>
@@ -1193,10 +1223,16 @@ nav{display:none!important}
       <div class="rp-field">
         <label>문제 내용</label>
         <textarea id="rpText" rows="4"></textarea>
-        <button id="rpGraphBtn" onclick="openGgbModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          📊 그래프 삽입
-        </button>
+        <div class="rp-btn-row">
+          <button id="rpGraphBtn" onclick="openGgbModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            그래프 삽입
+          </button>
+          <button id="rpFigureBtn" onclick="openFigureModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 20 2 20"/></svg>
+            도형 삽입
+          </button>
+        </div>
       </div>
       <div id="rpBogiWrap" style="display:none">
         <div class="rp-field"><label>보기 ㄱ</label><textarea id="rpBogi1" rows="2"></textarea></div>
@@ -1241,7 +1277,7 @@ nav{display:none!important}
   <div class="admin-stats" id="adminStats">
     <div class="stat-card"><div class="val" id="statUsers">—</div><div class="lbl">전체 유저</div></div>
     <div class="stat-card"><div class="val" id="statExams">—</div><div class="lbl">전체 시험지</div></div>
-    <div class="stat-card"><div class="val" id="statVersion">1s</div><div class="lbl">byteexam</div></div>
+    <div class="stat-card"><div class="val" id="statVersion">2.1s</div><div class="lbl">byteexam</div></div>
   </div>
 
   <div style="display:flex;gap:20px;align-items:flex-start;flex-shrink:0">
@@ -1294,13 +1330,13 @@ nav{display:none!important}
       <a href="https://bytenode109.vercel.app" style="display:inline-block;margin-top:8px;font-size:11px;color:var(--accent);text-decoration:none">→ bytenode 바로가기</a>
     </div>
     <div style="flex:1;min-width:200px;background:var(--accent-dim);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:16px 18px">
-      <div style="font-size:13px;font-weight:800;color:var(--accent2);margin-bottom:6px">byteexam <span style="background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;vertical-align:middle">1s</span></div>
+      <div style="font-size:13px;font-weight:800;color:var(--accent2);margin-bottom:6px">byteexam</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.7">AI로 고품질 시험지를 자동 생성하는 전용 도구. bytenode 계정으로 로그인하며, 만든 시험지는 PDF로 바로 출력됩니다.</div>
     </div>
   </div>
 
   <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">사용방법</h2>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:28px">byteexam 1s — AI로 시험지를 만드는 방법을 안내합니다.</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:28px">byteexam — AI로 시험지를 만드는 방법을 안내합니다.</p>
 
   <!-- STEP 1 -->
   <div style="margin-bottom:24px">
@@ -1884,6 +1920,117 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
       <label>삽입 너비: <input type="number" id="ggbDisplayW" value="320" min="120" max="740" step="20"> px</label>
       <div style="flex:1"></div>
       <button id="ggbInsertBtn" onclick="insertGraphToQuestion()">시험지에 삽입</button>
+    </div>
+  </div>
+</div>
+<!-- ══ 도형 삽입 모달 ══ -->
+<div id="figureOverlay" onclick="if(event.target===this)closeFigureModal()">
+  <div id="figurePanel">
+    <div class="fig-hdr">
+      <h3>📐 도형 삽입</h3>
+      <div style="display:flex;gap:4px">
+        <button class="fig-tab-btn active" id="figTabBtnCoord" onclick="switchFigureTab('coord')">좌표계</button>
+        <button class="fig-tab-btn" id="figTabBtnFig" onclick="switchFigureTab('fig')">기하도형</button>
+        <button class="fig-tab-btn" id="figTabBtnFig3d" onclick="switchFigureTab('fig3d')">3D입체</button>
+      </div>
+      <div style="flex:1"></div>
+      <button class="tb-btn" onclick="closeFigureModal()" style="padding:3px 10px;font-size:13px">✕</button>
+    </div>
+    <div class="fig-body">
+      <div class="fig-left">
+        <!-- COORD 탭 -->
+        <div id="figTabCoord">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:6px">xmin/xmax/ymin/ymax/w/h 설정 후 요소를 추가하세요.</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <div class="fig-size-row">범위 x: <input type="number" id="fcXmin" value="-5" style="width:46px"> ~ <input type="number" id="fcXmax" value="5" style="width:46px"></div>
+            <div class="fig-size-row">y: <input type="number" id="fcYmin" value="-4" style="width:46px"> ~ <input type="number" id="fcYmax" value="4" style="width:46px"></div>
+            <div class="fig-size-row">크기: <input type="number" id="fcW" value="220" style="width:50px"> × <input type="number" id="fcH" value="220" style="width:50px"></div>
+          </div>
+          <div class="fig-quick-btns" style="margin-bottom:6px">
+            <button class="fig-q-btn" onclick="figAppend('coord','pt(0,0,O)')">점</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','open_pt(2,0,A)')">열린점</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','line(0,0,3,2)')">선분</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','dline(1,0,1,3)')">점선</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','ray(0,0,3,2)')">반직선</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','circle(0,0,2)')">원</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','parabola(1,0,-1,-3,3)')">포물선</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','ellipse(0,0,3,2)')">타원</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','hyperbola_x(0,0,2,1,-4,4)')">쌍곡선x</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','hyperbola_y(0,0,2,1,-4,4)')">쌍곡선y</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','trig(sin,0,1,0,-4,4)')">삼각함수</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','exp(1,1,0,-3,3)')">지수</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','log(1,1,0,0.05,4)')">로그</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','rational(1,0,0,0,-4,4)')">유리함수</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','absline(1,0,0,-3,3)')">절댓값</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','vector(0,0,2,3,v)')">벡터</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','asymptote(0,2)')">점근선</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','label(1,2,f(x))')">라벨</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','poly(0,0,3,0,1.5,2.6)')">다각형</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','shade_parabola(1,0,-2,-2,2,above)')">적분색칠</button>
+            <button class="fig-q-btn" onclick="figAppend('coord','tick_coord(x,1)')">눈금</button>
+          </div>
+          <textarea class="fig-code" id="fcElements" rows="5" placeholder="pt(1,2,A);parabola(1,0,-1,-3,3);dline(1,0,1,2)" oninput="figPreview('coord')"></textarea>
+        </div>
+        <!-- FIGURE 탭 -->
+        <div id="figTabFig" style="display:none">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:6px">픽셀 좌표 직접 지정. (0,0)=좌상단.</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <div class="fig-size-row">캔버스: <input type="number" id="ffW" value="200" style="width:56px"> × <input type="number" id="ffH" value="180" style="width:56px"> px</div>
+          </div>
+          <div class="fig-quick-btns" style="margin-bottom:6px">
+            <button class="fig-q-btn" onclick="figAppend('fig','poly(100,20,180,150,20,150)')">삼각형</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','poly(40,40,160,40,160,150,40,150)')">사각형</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','circle(100,90,60)')">원</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','arc(20,150,25,0,90)')">호</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','line(100,20,100,150)')">선분</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','dline(100,150,180,150)')">점선</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','right_angle(20,150,12,0)')">직각기호</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','tick(90,20,100,20,110,20,0)')">눈금선</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','vector(50,100,150,100)')">벡터</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','fill_poly(100,20,180,150,20,150)')">색칠삼각형</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','ellipse(100,90,70,40)')">타원</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','pt(100,90,O)')">점</button>
+            <button class="fig-q-btn" onclick="figAppend('fig','label(100,12,A)')">라벨</button>
+          </div>
+          <textarea class="fig-code" id="ffElements" rows="5" placeholder="poly(90,20,170,140,10,140);right_angle(10,140,10,0);label(90,12,A)" oninput="figPreview('fig')"></textarea>
+        </div>
+        <!-- FIGURE3D 탭 -->
+        <div id="figTabFig3d" style="display:none">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:6px">3D 수학 좌표 입력 (사투영 자동 렌더링). 크기 w/h 설정.</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <div class="fig-size-row">크기: <input type="number" id="f3W" value="220" style="width:50px"> × <input type="number" id="f3H" value="200" style="width:50px"></div>
+          </div>
+          <div class="fig-quick-btns" style="margin-bottom:6px">
+            <button class="fig-q-btn" onclick="figSet3d('box(0,0,0,3,2,2)')">직육면체</button>
+            <button class="fig-q-btn" onclick="figSet3d('pyramid4(0,0,0,3,3,3)')">사각뿔</button>
+            <button class="fig-q-btn" onclick="figSet3d('prism3(0,0,0,3,3,2)')">삼각기둥</button>
+            <button class="fig-q-btn" onclick="figSet3d('cone(1.5,0,1.5,1.5,3)')">원뿔</button>
+            <button class="fig-q-btn" onclick="figSet3d('cylinder(1.5,0,1.5,1.5,3)')">원기둥</button>
+            <button class="fig-q-btn" onclick="figSet3d('sphere(1.5,1.5,1.5,1.5)')">구</button>
+            <button class="fig-q-btn" onclick="figSet3d('tetrahedron(0,0,0,3)')">정사면체</button>
+            <button class="fig-q-btn" onclick="figAppend('fig3d','pt3d(0,0,0,O)')">점</button>
+            <button class="fig-q-btn" onclick="figAppend('fig3d','label3d(1.5,3,1.5,H)')">라벨</button>
+            <button class="fig-q-btn" onclick="figAppend('fig3d','line3d(0,0,0,3,0,0)')">선분</button>
+            <button class="fig-q-btn" onclick="figAppend('fig3d','dline3d(0,0,0,3,0,0)')">점선</button>
+          </div>
+          <textarea class="fig-code" id="f3Elements" rows="5" placeholder="box(0,0,0,3,2,2);pt3d(0,0,0,O);label3d(3,0,0,B)" oninput="figPreview('fig3d')"></textarea>
+        </div>
+      </div>
+      <div class="fig-preview">
+        <div class="fig-preview-label">미리보기</div>
+        <div class="fig-preview-box" id="figPreviewBox"></div>
+        <div class="fig-hint" id="figPreviewHint" style="margin-top:4px">💡 미리보기 클릭: 점 추가 / 점 드래그: 위치 이동</div>
+        <div style="margin-top:auto">
+          <div class="fig-preview-label" style="margin-top:10px">생성될 태그</div>
+          <textarea class="fig-code" id="figTagPreview" rows="3" readonly style="font-size:10px;color:rgba(167,139,250,.85)"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="fig-foot">
+      <div style="font-size:11px;color:var(--muted)">문제 내용의 커서 위치에 삽입됩니다</div>
+      <div style="flex:1"></div>
+      <button onclick="closeFigureModal()" style="padding:6px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:7px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit">취소</button>
+      <button id="figInsertBtn" onclick="insertFigureToQuestion()">삽입하기</button>
     </div>
   </div>
 </div>
@@ -6588,6 +6735,184 @@ function insertGraphToQuestion() {
   ta.value = ta.value.slice(0,pos) + "\n" + tag + "\n" + ta.value.slice(pos);
   ta.dispatchEvent(new Event("input"));
   closeGgbModal();
+}
+/* ── 도형 삽입 모달 ── */
+let _figTab = 'coord';
+
+function openFigureModal() {
+  $('figureOverlay').classList.add('open');
+  figPreview(_figTab);
+}
+function closeFigureModal() {
+  $('figureOverlay').classList.remove('open');
+}
+function switchFigureTab(tab) {
+  _figTab = tab;
+  ['coord','fig','fig3d'].forEach(t => {
+    $('figTab' + (t==='coord'?'Coord':t==='fig'?'Fig':'Fig3d')).style.display = t===tab?'':'none';
+    $('figTabBtn' + (t==='coord'?'Coord':t==='fig'?'Fig':'Fig3d')).classList.toggle('active', t===tab);
+  });
+  figPreview(tab);
+}
+function figAppend(tab, snippet) {
+  const ta = tab==='coord'?$('fcElements'):tab==='fig'?$('ffElements'):$('f3Elements');
+  const cur = ta.value.trim();
+  ta.value = cur ? cur + ';' + snippet : snippet;
+  figPreview(tab);
+}
+function figSet3d(snippet) {
+  const ta = $('f3Elements');
+  const cur = ta.value;
+  // remove previous shape if it's the only element
+  const lines = cur.split(';').filter(s => s && !s.match(/^(box|pyramid4|prism3|cone|cylinder|sphere|tetrahedron)\(/));
+  lines.unshift(snippet);
+  ta.value = lines.join(';');
+  figPreview('fig3d');
+}
+function figBuildTag(tab) {
+  if (tab === 'coord') {
+    const xmin=$('fcXmin').value, xmax=$('fcXmax').value, ymin=$('fcYmin').value, ymax=$('fcYmax').value;
+    const w=$('fcW').value, h=$('fcH').value;
+    const els = $('fcElements').value.trim();
+    return `[COORD:xmin=${xmin},xmax=${xmax},ymin=${ymin},ymax=${ymax},w=${w},h=${h}${els?';'+els:''}]`;
+  } else if (tab === 'fig') {
+    const w=$('ffW').value, h=$('ffH').value;
+    const els = $('ffElements').value.trim();
+    return `[FIGURE:w=${w},h=${h}${els?';'+els:''}]`;
+  } else {
+    const w=$('f3W').value, h=$('f3H').value;
+    const els = $('f3Elements').value.trim();
+    return `[FIGURE3D:w=${w},h=${h}${els?';'+els:''}]`;
+  }
+}
+function figPreview(tab) {
+  const tag = figBuildTag(tab);
+  const box = $('figPreviewBox');
+  const hint = $('figPreviewHint');
+  $('figTagPreview').value = tag;
+  try {
+    const html = _escWithMathCore(tag);
+    box.innerHTML = html;
+    if (window.katex) box.querySelectorAll('[data-latex]').forEach(el => {
+      try { el.innerHTML = katex.renderToString(el.dataset.latex||'', {throwOnError:false, macros:KATEX_MACROS}); } catch(e){}
+    });
+    // 인터랙티브 오버레이 추가
+    figAddOverlay(tab, box);
+    hint.textContent = '';
+  } catch(e) {
+    box.innerHTML = '<span style="font-size:11px;color:#f87171">렌더링 오류: '+e.message+'</span>';
+    hint.textContent = e.message;
+  }
+}
+
+let _figDragEl = null, _figDragOff = {x:0,y:0}, _figDragIdx = -1, _figDragType = '';
+
+function figAddOverlay(tab, box) {
+  // SVG 위에 드래그 가능한 점/요소 핸들 추가
+  const svg = box.querySelector('svg');
+  if (!svg) return;
+
+  if (tab === 'fig') {
+    // FIGURE: 픽셀 좌표 — SVG 클릭으로 pt 추가, 기존 pt 드래그
+    svg.style.cursor = 'crosshair';
+    svg.style.userSelect = 'none';
+
+    // 기존 핸들 제거 후 재생성
+    svg.querySelectorAll('.fig-handle').forEach(e => e.remove());
+
+    // 현재 elements에서 pt(x,y,label) 파싱해서 드래그 핸들 생성
+    const els = $('ffElements').value;
+    const ptRe = /pt\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?),?([^)]*)\)/g;
+    let m;
+    while ((m = ptRe.exec(els)) !== null) {
+      const cx = parseFloat(m[1]), cy = parseFloat(m[2]);
+      const h = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      h.setAttribute('cx', cx); h.setAttribute('cy', cy); h.setAttribute('r', 7);
+      h.setAttribute('fill','rgba(108,99,255,.5)'); h.setAttribute('stroke','#a78bfa'); h.setAttribute('stroke-width','2');
+      h.setAttribute('class','fig-handle'); h.style.cursor='grab';
+      const matchStr = m[0];
+      h.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        _figDragEl = h; _figDragType = 'fig-pt';
+        const svgRect = svg.getBoundingClientRect();
+        const svgW = parseFloat(svg.getAttribute('width')||svg.viewBox?.baseVal?.width||200);
+        const svgH = parseFloat(svg.getAttribute('height')||svg.viewBox?.baseVal?.height||180);
+        const scaleX = svgW / svgRect.width, scaleY = svgH / svgRect.height;
+        _figDragOff = {
+          cx: parseFloat(h.getAttribute('cx')), cy: parseFloat(h.getAttribute('cy')),
+          mx: e.clientX, my: e.clientY, scaleX, scaleY, svgRect,
+          matchStr, label: m[3]||''
+        };
+        h.style.cursor='grabbing';
+      });
+      svg.appendChild(h);
+    }
+
+    // 클릭으로 새 pt 추가 (핸들 드래그 중이면 무시)
+    svg._figClickHandler && svg.removeEventListener('click', svg._figClickHandler);
+    svg._figClickHandler = function(e) {
+      if (_figDragEl) return;
+      const rect = svg.getBoundingClientRect();
+      const svgW = parseFloat(svg.getAttribute('width')||200);
+      const svgH = parseFloat(svg.getAttribute('height')||180);
+      const x = Math.round((e.clientX - rect.left) * svgW / rect.width);
+      const y = Math.round((e.clientY - rect.top) * svgH / rect.height);
+      const label = String.fromCharCode(65 + (($('ffElements').value.match(/pt\(/g)||[]).length % 26));
+      figAppend('fig', `pt(${x},${y},${label})`);
+    };
+    svg.addEventListener('click', svg._figClickHandler);
+
+  } else if (tab === 'coord') {
+    // COORD: 수학 좌표 — 클릭으로 pt 추가
+    svg.style.cursor = 'crosshair';
+    svg._figClickHandler && svg.removeEventListener('click', svg._figClickHandler);
+    svg._figClickHandler = function(e) {
+      if (_figDragEl) return;
+      const rect = svg.getBoundingClientRect();
+      const svgW = parseFloat(svg.getAttribute('width')||220);
+      const svgH = parseFloat(svg.getAttribute('height')||220);
+      // 수학 좌표로 변환
+      const xmin = parseFloat($('fcXmin').value)||-5, xmax = parseFloat($('fcXmax').value)||5;
+      const ymin = parseFloat($('fcYmin').value)||-4, ymax = parseFloat($('fcYmax').value)||4;
+      const px = (e.clientX - rect.left) * svgW / rect.width;
+      const py = (e.clientY - rect.top) * svgH / rect.height;
+      const mx = Math.round((px / svgW * (xmax - xmin) + xmin) * 10) / 10;
+      const my = Math.round(((1 - py / svgH) * (ymax - ymin) + ymin) * 10) / 10;
+      const label = String.fromCharCode(65 + (($('fcElements').value.match(/pt\(/g)||[]).length % 26));
+      figAppend('coord', `pt(${mx},${my},${label})`);
+    };
+    svg.addEventListener('click', svg._figClickHandler);
+    const coordHint = $('figPreviewHint');
+    coordHint.textContent = '클릭: 점 추가';
+  }
+}
+
+// 전역 mousemove/mouseup으로 드래그 처리
+document.addEventListener('mousemove', function(e) {
+  if (!_figDragEl || _figDragType !== 'fig-pt') return;
+  const o = _figDragOff;
+  const dx = (e.clientX - o.mx) * o.scaleX;
+  const dy = (e.clientY - o.my) * o.scaleY;
+  const nx = Math.round(o.cx + dx), ny = Math.round(o.cy + dy);
+  _figDragEl.setAttribute('cx', nx); _figDragEl.setAttribute('cy', ny);
+  // DSL 실시간 업데이트
+  const newMatch = `pt(${nx},${ny},${o.label})`;
+  const ta = $('ffElements');
+  ta.value = ta.value.replace(o.matchStr, newMatch);
+  o.matchStr = newMatch; o.cx = nx; o.cy = ny; o.mx = e.clientX; o.my = e.clientY;
+  $('figTagPreview').value = figBuildTag('fig');
+});
+document.addEventListener('mouseup', function() {
+  if (_figDragEl) { _figDragEl.style.cursor='grab'; _figDragEl = null; }
+});
+function insertFigureToQuestion() {
+  const tag = figBuildTag(_figTab);
+  const ta = $('rpText');
+  if (!ta) return;
+  const pos = ta.selectionStart || ta.value.length;
+  ta.value = ta.value.slice(0,pos) + '\n' + tag + '\n' + ta.value.slice(pos);
+  ta.dispatchEvent(new Event('input'));
+  closeFigureModal();
 }
 /* ── 삭제 핸들러 교체: 삭제 후 캔버스 초기화 ── */
 (function patchDeleteBtn() {
