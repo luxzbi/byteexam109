@@ -3,3 +3,10 @@ data/
 .env
 public/uploads/
 *.db
+.vercel
+
+firebase-key.json
+server.log
+server_err.log
+*.log
+.env

@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="byteexam">
+<meta property="og:description" content="AI로 고품질 시험지를 만들고 PDF로 출력하는 도구.">
+<meta property="og:image" content="https://byteexam109.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <title>byteexam</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -1024,48 +1031,13 @@ nav{display:none!important}
 <div class="page active" id="pgLogin">
   <div class="login-card">
 
-    <!-- 로그인 섹션 -->
-    <div id="loginSection">
-      <h2>로그인</h2>
-      <p class="sub">bytenode·byteexam 공용 계정으로 로그인하세요.</p>
-      <div class="fg"><label>아이디</label>
-        <input type="text" id="liId" placeholder="아이디" autocomplete="username">
-      </div>
-      <div class="fg"><label>비밀번호</label>
-        <input type="password" id="liPw" placeholder="비밀번호" autocomplete="current-password">
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <input type="checkbox" id="liRemember" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-        <label for="liRemember" style="font-size:13px;color:var(--muted);cursor:pointer;margin:0">로그인 상태 유지</label>
-      </div>
-      <button class="btn btn-primary" id="liBtn">로그인</button>
+    <!-- bytenode 통합 계정(SSO): 즉시 이동 -->
+    <div id="loginSection" style="text-align:center">
+      <h2>bytenode 계정</h2>
+      <p class="sub">로그인 화면으로 이동합니다…</p>
+      <button class="btn btn-primary" id="ssoLoginBtn">이동이 안 되면 클릭</button>
       <div class="login-err" id="liErr"></div>
-      <p class="login-note">계정이 없으신가요? <a href="#" id="goRegisterLink">회원가입</a></p>
-    </div>
-
-    <!-- 회원가입 섹션 -->
-    <div id="registerSection" style="display:none">
-      <h2>회원가입</h2>
-      <p class="sub">byteexam·bytenode 양쪽에서 사용할 수 있는 계정을 만듭니다.</p>
-      <div class="fg"><label>아이디 <span style="font-size:10px;color:var(--muted);font-weight:400">(영문·숫자·밑줄 3~20자)</span></label>
-        <input type="text" id="riId" placeholder="예: student_kim" autocomplete="username" maxlength="20">
-      </div>
-      <div class="fg"><label>닉네임 <span style="font-size:10px;color:var(--muted);font-weight:400">(2~20자)</span></label>
-        <input type="text" id="riName" placeholder="예: 김학생" maxlength="20">
-      </div>
-      <div class="fg"><label>비밀번호 <span style="font-size:10px;color:var(--muted);font-weight:400">(6자 이상)</span></label>
-        <input type="password" id="riPw" placeholder="비밀번호" autocomplete="new-password">
-      </div>
-      <div class="fg"><label>비밀번호 확인</label>
-        <input type="password" id="riPw2" placeholder="비밀번호 확인" autocomplete="new-password">
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;margin:8px 0 6px">
-        <input type="checkbox" id="riAgree" style="width:16px;height:16px;margin-top:3px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-        <label for="riAgree" style="font-size:12px;color:var(--muted);line-height:1.7;cursor:pointer"><a href="https://bytenode109.vercel.app/terms.html" target="_blank" style="color:var(--accent);text-decoration:underline">이용약관</a> 및 <a href="https://bytenode109.vercel.app/privacy.html" target="_blank" style="color:var(--accent);text-decoration:underline">개인정보 처리방침</a>에 동의합니다. (필수)</label>
-      </div>
-      <button class="btn btn-primary" id="riBtn">회원가입</button>
-      <div class="login-err" id="riErr"></div>
-      <p class="login-note">이미 계정이 있으신가요? <a href="#" id="goLoginLink">로그인</a></p>
+      <p class="login-note" style="display:none"><a href="#" id="ssoRegisterLink">회원가입</a></p>
     </div>
 
   </div>
@@ -2867,6 +2839,18 @@ async function init() {
 
   try { CFG = await api('GET', '/api/config'); } catch { /* config 실패해도 진행 */ }
 
+  /* SSO 복귀: bytenode-account에서 #bn_token=... 으로 돌아옴 → byteexam 토큰으로 교환 */
+  const ssoM = location.hash.match(/bn_token=([^&]+)/);
+  if (ssoM) {
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const ex = await api('POST', '/api/auth/sso', { token: decodeURIComponent(ssoM[1]) });
+      TOKEN = ex.token;
+      localStorage.setItem('bn_token', TOKEN);
+      sessionStorage.removeItem('bn_token');
+    } catch (e) { console.warn('[sso]', e.message); }
+  }
+
   if (!TOKEN) return showLogin();
   try {
     ME = await api('GET', '/api/auth/me');
@@ -2889,6 +2873,8 @@ function showLogin() {
   $('adminBtn').style.display = 'none';
   $('adminTab').style.display = 'none';
   $('adminBadge').style.display = 'none';
+  /* 통합 SSO 화면으로 즉시 이동 (로그인 UI는 bytenode-account 하나로 통일) */
+  setTimeout(() => ssoGo('login'), 400);
 }
 
 function showApp() {
@@ -2935,92 +2921,16 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeGuide(); }
 /* ════════════════════════════════
    AUTH
 ════════════════════════════════ */
-$('liBtn').addEventListener('click', doLogin);
-$('liId').addEventListener('keydown', e=>{ if(e.key==='Enter') $('liPw').focus(); });
-$('liPw').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-
-/* 로그인 ↔ 회원가입 전환 */
-$('goRegisterLink').addEventListener('click', e => {
-  e.preventDefault();
-  $('loginSection').style.display = 'none';
-  $('registerSection').style.display = '';
-  $('liErr').textContent = '';
-  $('riId').focus();
-});
-$('goLoginLink').addEventListener('click', e => {
-  e.preventDefault();
-  $('registerSection').style.display = 'none';
-  $('loginSection').style.display = '';
-  $('riErr').textContent = '';
-  $('liId').focus();
-});
-
-async function doLogin() {
-  $('liErr').textContent = '';
-  const username = $('liId').value.trim();
-  const password = $('liPw').value;
-  if (!username || !password) { $('liErr').textContent = '아이디와 비밀번호를 입력하세요.'; return; }
-  const btn = $('liBtn');
-  btn.disabled = true;
-  btn.textContent = '로그인 중...';
-  try {
-    const data = await api('POST', '/api/auth/login', { username, password });
-    TOKEN = data.token;
-    ME    = data.user;
-    const remember = $('liRemember') ? $('liRemember').checked : true;
-    if (remember) { localStorage.setItem('bn_token', TOKEN); sessionStorage.removeItem('bn_token'); }
-    else { sessionStorage.setItem('bn_token', TOKEN); localStorage.removeItem('bn_token'); }
-    showApp();
-  } catch(e) {
-    $('liErr').textContent = e.message || '로그인에 실패했습니다. 다시 시도하세요.';
-    btn.disabled = false;
-    btn.textContent = '로그인';
-  }
-}
-
-$('riBtn').addEventListener('click', doRegister);
-$('riId').addEventListener('keydown',   e=>{ if(e.key==='Enter') $('riName').focus(); });
-$('riName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('riPw').focus(); });
-$('riPw').addEventListener('keydown',   e=>{ if(e.key==='Enter') $('riPw2').focus(); });
-$('riPw2').addEventListener('keydown',  e=>{ if(e.key==='Enter') doRegister(); });
-
-async function doRegister() {
-  $('riErr').textContent = '';
-  const agreeEl = $('riAgree');
-  if (agreeEl && !agreeEl.checked) { $('riErr').textContent = '이용약관 및 개인정보 처리방침에 동의해주세요.'; return; }
-  const username    = $('riId').value.trim();
-  const displayName = $('riName').value.trim();
-  const password    = $('riPw').value;
-  const password2   = $('riPw2').value;
-  if (!username || !displayName || !password || !password2) {
-    $('riErr').textContent = '모든 항목을 입력하세요.'; return;
-  }
-  if (password !== password2) {
-    $('riErr').textContent = '비밀번호가 일치하지 않습니다.'; return;
-  }
-  const btn = $('riBtn');
-  btn.disabled = true;
-  btn.textContent = '가입 중...';
-  try {
-    const data = await api('POST', '/api/auth/register', { username, displayName, password });
-    TOKEN = data.token;
-    ME    = data.user;
-    localStorage.setItem('bn_token', TOKEN);
-    sessionStorage.removeItem('bn_token');
-    showApp();
-  } catch(e) {
-    $('riErr').textContent = e.message || '회원가입에 실패했습니다. 다시 시도하세요.';
-    btn.disabled = false;
-    btn.textContent = '회원가입';
-  }
-}
+/* ── bytenode 통합 계정(SSO) ── */
+const SSO_URL = 'https://bytenode-account.vercel.app';
+const ssoGo = page => location.href = SSO_URL + '/' + page + '?redirect=' + encodeURIComponent(location.origin + '/');
+$('ssoLoginBtn').addEventListener('click', () => ssoGo('login'));
+$('ssoRegisterLink').addEventListener('click', e => { e.preventDefault(); ssoGo('welcome'); });
 
 $('logoutBtn').addEventListener('click', () => {
   TOKEN = ''; ME = null;
   localStorage.removeItem('bn_token');
-  /* 로그인 화면 복귀 시 로그인 섹션 표시 */
-  $('registerSection').style.display = 'none';
-  $('loginSection').style.display = '';
+  sessionStorage.removeItem('bn_token');
   showLogin();
 });
 

@@ -120,43 +120,40 @@ app.get('/api/config', (req, res) => {
   res.json({ bytenodeUrl: process.env.BYTENODE_URL || 'https://bytenode109.vercel.app', siteName: 'byteexam' });
 });
 
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { username, displayName, password } = req.body;
-    if (!username || !displayName || !password)
-      return res.status(400).json({ error: '아이디, 닉네임, 비밀번호를 모두 입력하세요.' });
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username))
-      return res.status(400).json({ error: '아이디는 영문·숫자·밑줄(_) 3~20자여야 합니다.' });
-    if (String(displayName).trim().length < 2 || String(displayName).trim().length > 20)
-      return res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
-    if (password.length < 6)
-      return res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
-    const { rows: existing } = await pool.query('SELECT id FROM users WHERE username=$1', [username]);
-    if (existing.length) return res.status(409).json({ error: '이미 사용 중인 아이디입니다.' });
-    const hashed = await bcrypt.hash(password, 12);
-    const id = uuid();
-    const dn = String(displayName).trim();
-    await pool.query(
-      'INSERT INTO users (id,username,display_name,pw,is_admin,bio,avatar,banned,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-      [id, username, dn, hashed, false, '', '', false, Date.now()]
-    );
-    const token = jwt.sign({ id, username, displayName: dn, isAdmin: false }, JWT_SECRET, { expiresIn: '30d' });
-    res.status(201).json({ token, user: { id, username, displayName: dn, isAdmin: false } });
-  } catch(e) { console.error('[register]', e); res.status(500).json({ error: '서버 오류가 발생했습니다.' }); }
+/* 구 자체 로그인/회원가입은 통합 계정(SSO)으로 완전 이관됨 — 비활성화(410 Gone).
+   계정 생성/인증은 bytenode-account에서만 이뤄지고, byteexam은 /api/auth/sso로 연결한다. */
+const ssoGone = (req, res) => res.status(410).json({
+  error: '이 방식은 더 이상 지원되지 않습니다. bytenode 통합 계정으로 로그인하세요.',
+  loginUrl: 'https://bytenode-account.vercel.app/login'
 });
+app.post('/api/auth/register', ssoGone);
+app.post('/api/auth/login', ssoGone);
 
-app.post('/api/auth/login', async (req, res) => {
+/* SSO: bytenode 토큰 → byteexam 계정 자동 생성(upsert) + byteexam 토큰 발급 */
+app.post('/api/auth/sso', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: '아이디와 비밀번호를 입력하세요.' });
-    const { rows } = await pool.query('SELECT * FROM users WHERE username=$1', [username]);
-    const user = mapUser(rows[0]);
-    if (!user) return res.status(401).json({ error: '아이디 또는 비밀번호가 틀렸습니다.' });
-    const ok = await bcrypt.compare(password, user.pw);
-    if (!ok) return res.status(401).json({ error: '아이디 또는 비밀번호가 틀렸습니다.' });
-    const token = jwt.sign({ id: user.id, username: user.username, displayName: user.displayName, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, username: user.username, displayName: user.displayName, isAdmin: user.isAdmin } });
-  } catch(e) { console.error('[login]', e); res.status(500).json({ error: '서버 오류가 발생했습니다.' }); }
+    const { token } = req.body || {};
+    if (!token) return res.status(400).json({ error: '토큰이 없습니다.' });
+    const bnUrl = process.env.BYTENODE_URL || 'https://bytenode109.vercel.app';
+    const r = await fetch(bnUrl + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(10_000) });
+    if (!r.ok) return res.status(401).json({ error: '유효하지 않은 세션입니다. 다시 로그인하세요.' });
+    const bn = await r.json();
+    if (!bn.id || !bn.username) return res.status(401).json({ error: '계정 정보를 확인할 수 없습니다.' });
+
+    const { rows } = await pool.query('SELECT * FROM users WHERE id=$1 OR username=$2', [String(bn.id), bn.username]);
+    let user = mapUser(rows[0]);
+    if (!user) {
+      const dn = String(bn.displayName || bn.username).slice(0, 20);
+      await pool.query(
+        'INSERT INTO users (id,username,display_name,pw,is_admin,bio,avatar,banned,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        [String(bn.id), bn.username, dn, 'sso-only', false, '', '', false, Date.now()]
+      );
+      user = { id: String(bn.id), username: bn.username, displayName: dn, isAdmin: false };
+    }
+    if (user.banned) return res.status(403).json({ error: '이용이 제한된 계정입니다.' });
+    const localToken = jwt.sign({ id: user.id, username: user.username, displayName: user.displayName, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token: localToken, user: { id: user.id, username: user.username, displayName: user.displayName, isAdmin: user.isAdmin } });
+  } catch (e) { console.error('[sso]', e); res.status(500).json({ error: '서버 오류가 발생했습니다.' }); }
 });
 
 app.get('/api/auth/me', auth, async (req, res) => {
