@@ -2923,7 +2923,7 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeGuide(); }
 ════════════════════════════════ */
 /* ── bytenode 통합 계정(SSO) ── */
 const SSO_URL = 'https://bytenode-account.vercel.app';
-const ssoGo = page => location.href = SSO_URL + '/' + page + '?redirect=' + encodeURIComponent(location.origin + '/');
+const ssoGo = page => location.href = SSO_URL + '/' + page + '?redirect=' + encodeURIComponent(location.href);
 $('ssoLoginBtn').addEventListener('click', () => ssoGo('login'));
 $('ssoRegisterLink').addEventListener('click', e => { e.preventDefault(); ssoGo('welcome'); });
 
