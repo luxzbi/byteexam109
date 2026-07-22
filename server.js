@@ -19,10 +19,16 @@ const ADMIN_PW   = process.env.ADMIN_PW;
 if (!JWT_SECRET) { console.error('❌ JWT_SECRET 없음'); process.exit(1); }
 if (!ADMIN_PW)   { console.error('❌ ADMIN_PW 없음');   process.exit(1); }
 
+/* 서버리스는 인스턴스가 여럿 뜨므로 인스턴스당 커넥션을 적게 잡아
+   Postgres 연결 한도를 넘기지 않게 한다. */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  max: Number(process.env.PG_POOL_MAX || 3),
+  idleTimeoutMillis: 10_000,
+  connectionTimeoutMillis: 8_000
 });
+pool.on('error', e => console.error('[pg pool]', e.message));
 
 async function initDB() {
   await pool.query(`
@@ -61,7 +67,28 @@ async function initDB() {
   }
 }
 
-initDB().catch(e => { console.error('DB 초기화 실패', e); process.exit(1); });
+/* 콜드스타트마다 초기화를 시도하되, 실패해도 함수를 죽이지 않는다.
+   예전에는 여기서 process.exit(1)을 불러 일시적인 DB 지연에도
+   FUNCTION_INVOCATION_FAILED(500)로 앱 전체가 떨어졌다. */
+let initPromise = null;
+function ensureDB() {
+  if (!initPromise) initPromise = initDB().catch(e => { initPromise = null; throw e; });
+  return initPromise;
+}
+ensureDB().catch(e => console.error('DB 초기화 실패(요청 시 재시도)', e.message));
+
+/* 헬스체크는 DB 준비 여부와 무관하게 즉시 답한다(DB 상태는 필드로 알린다) */
+app.get('/api/health', async (req, res) => {
+  let db = 'down';
+  try { await pool.query('SELECT 1'); db = 'up'; } catch (_) {}
+  res.json({ ok: true, service: 'byteexam', database: db });
+});
+
+/* DB가 필요한 API는 초기화를 기다린다. 정적 파일과 헬스체크는 영향받지 않는다. */
+app.use('/api', async (req, res, next) => {
+  try { await ensureDB(); next(); }
+  catch (e) { res.status(503).json({ error: '데이터베이스에 연결할 수 없습니다. 잠시 후 다시 시도하세요.' }); }
+});
 
 const PUB = path.join(__dirname, 'public');
 
