@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+const profileScript = fs.readFileSync(path.join(__dirname, '..', 'public', 'bn-profile.js'), 'utf8');
 
 test('byteexam 3s 과목 버튼과 과목별 선택 제한이 포함된다', () => {
   assert.match(html, /byteexam <span class="badge">3s<\/span>/);
@@ -33,4 +34,12 @@ test('인라인 애플리케이션 스크립트 문법이 유효하다', () => {
   const blocks = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1]).filter(source => source.trim());
   for (const source of blocks) assert.doesNotThrow(() => new Function(source));
+});
+
+test('프로필은 로그아웃과 같은 사용자 영역에 배치되어 겹치지 않는다', () => {
+  assert.match(profileScript, /var host = document\.getElementById\('navUser'\)/);
+  assert.match(profileScript, /\(host \|\| document\.body\)\.appendChild\(slot\)/);
+  assert.match(profileScript, /#bnProfileBtn\{position:relative/);
+  assert.doesNotMatch(profileScript, /#bnProfileBtn\{position:fixed/);
+  assert.match(html, /#toolbar\{[^}]*padding:0 12px/);
 });
