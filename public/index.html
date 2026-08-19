@@ -19,6 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- SmilesDrawer: MIT License, https://github.com/reymond-group/smilesDrawer -->
 <script src="https://unpkg.com/smiles-drawer@2.1.7/dist/smiles-drawer.min.js"></script>
+<script src="/byteexam-dsl.js"></script>
 <style>
 /* ══ RESET ══ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -408,7 +409,7 @@ nav{display:none!important}
 #mobileExamBar{display:none!important}
 
 /* TOOLBAR */
-#toolbar{height:48px;flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 58px 0 12px;background:#12121a;border-bottom:1px solid rgba(255,255,255,.06);z-index:200}
+#toolbar{height:48px;flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 12px;background:#12121a;border-bottom:1px solid rgba(255,255,255,.06);z-index:200}
 .tb-logo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;color:var(--text);flex-shrink:0;text-decoration:none}
 .tb-logo .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
 .tb-div{width:1px;height:20px;background:rgba(255,255,255,.09);margin:0 3px;flex-shrink:0}
@@ -908,6 +909,8 @@ nav{display:none!important}
   .tb-div{display:none}
   #guideOpenBtn{display:none}
   #adminBtn{display:none!important}
+  #navName{display:none!important}
+  #adminBadge{display:none!important}
   #tbExamTitle{font-size:11px;max-width:90px}
   /* 모드탭 */
   #modeTabBar{height:34px;padding:0 8px}
@@ -990,7 +993,7 @@ nav{display:none!important}
         <stop stop-color="#6c63ff"/><stop offset="1" stop-color="#a78bfa"/>
       </linearGradient></defs>
     </svg>
-    byteexam <span class="badge">2.1s</span><span id="tbDshs" style="font-size:.6rem;font-weight:400;letter-spacing:.06em;margin-left:5px">for dshs</span>
+    byteexam <span class="badge">3s</span><span id="tbDshs" style="font-size:.6rem;font-weight:400;letter-spacing:.06em;margin-left:5px">for dshs</span>
   </a>
   <div class="tb-div"></div>
   <span id="tbExamTitle">시험지를 선택하세요</span>
@@ -1249,7 +1252,7 @@ nav{display:none!important}
   <div class="admin-stats" id="adminStats">
     <div class="stat-card"><div class="val" id="statUsers">—</div><div class="lbl">전체 유저</div></div>
     <div class="stat-card"><div class="val" id="statExams">—</div><div class="lbl">전체 시험지</div></div>
-    <div class="stat-card"><div class="val" id="statVersion">2.1s</div><div class="lbl">byteexam</div></div>
+    <div class="stat-card"><div class="val" id="statVersion">3s</div><div class="lbl">byteexam</div></div>
   </div>
 
   <div style="display:flex;gap:20px;align-items:flex-start;flex-shrink:0">
@@ -1475,7 +1478,7 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
           <button class="aig-cat-btn" id="catNaesinBtn" onclick="selectAigCategory('내신')">
             <span class="aig-cat-icon">🏫</span>
             <span class="aig-cat-label">중학·고등 내신</span>
-            <span class="aig-cat-sub">수학·독토글 과목 출제</span>
+            <span class="aig-cat-sub">수학·사회·정보·파이썬·독토글 출제</span>
           </button>
           <button class="aig-cat-btn aig-disabled" id="catSuneungBtn" onclick="toast('준비중입니다','warn')">
             <span class="aig-cat-icon">🎯</span>
@@ -1527,12 +1530,21 @@ explain=완전제곱식으로 변형: $y=(x-2)^2-1$, 꼭짓점 $(2,-1)$
             <button class="aig-subject-btn" data-subj="수학" onclick="selectAigSubject('수학')"><span class="sb-icon">📐</span>수학</button>
             <button class="aig-subject-btn aig-disabled" data-subj="영어" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔤</span>영어</button>
             <button class="aig-subject-btn aig-disabled" data-subj="역사" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🏛️</span>한국사</button>
-            <button class="aig-subject-btn aig-disabled" data-subj="사회" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🌏</span>사회</button>
+            <button class="aig-subject-btn" data-subj="사회" onclick="selectAigSubject('사회')"><span class="sb-icon">🌏</span>사회</button>
             <button class="aig-subject-btn aig-disabled" data-subj="과학" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔬</span>과학</button>
             <button class="aig-subject-btn aig-disabled" data-subj="기술가정" onclick="toast('준비중입니다','warn')"><span class="sb-icon">🔧</span>기술가정</button>
             <button class="aig-subject-btn aig-disabled" data-subj="도덕" onclick="toast('준비중입니다','warn')"><span class="sb-icon">⚖️</span>도덕·윤리</button>
-            <button class="aig-subject-btn aig-disabled" data-subj="정보" onclick="toast('준비중입니다','warn')"><span class="sb-icon">💻</span>정보</button>
+            <button class="aig-subject-btn" data-subj="정보" onclick="selectAigSubject('정보')"><span class="sb-icon">💻</span>정보</button>
+            <button class="aig-subject-btn" data-subj="파이썬" onclick="selectAigSubject('파이썬')"><span class="sb-icon">🐍</span>파이썬</button>
             <button class="aig-subject-btn" data-subj="독토글" onclick="selectAigSubject('독토글')"><span class="sb-icon">📚</span>독토글</button>
+          </div>
+          <div id="aigSubModeWrap" style="display:none;margin-top:12px">
+            <div class="aig-section-sep">출제 기준</div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="aig-submode-btn active" id="subModeDiffBtn" onclick="selectAigSubMode('난이도유형별')">전국 공통</button>
+              <button class="aig-submode-btn" id="subModeRegionBtn" onclick="selectAigSubMode('지역별')">지역별 출제 경향</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">사회·수학에서만 지역별 경향을 선택할 수 있습니다. 정보·파이썬은 전국 공통 기준으로 출제합니다.</div>
           </div>
           <!-- 기타 선택 시 입력 칸 -->
           <div id="aigSubjectCustomWrap" class="aig-subject-custom" style="display:none">
@@ -2739,6 +2751,15 @@ function renderPassage(raw) {
   if (nl !== -1 && nl <= 50) { title = raw.slice(0, nl).trim(); body = raw.slice(nl + 1); }
   const titleHtml = title ? `<div style="font-weight:700;font-size:12px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #ccc;color:#333">${esc(title)}</div>` : '';
   return `<div style="border:1.5px solid #999;border-radius:4px;padding:12px 14px;margin:8px 0;background:#fafafa;font-size:13px;line-height:1.9;color:#111;white-space:pre-wrap;word-break:break-word">${titleHtml}${esc(body)}</div>`;
+}
+
+function renderQuestionPassages(question, textbooks) {
+  if (!window.ByteExamDSL) return '';
+  return ByteExamDSL.getQuestionPassages(question, textbooks).map(item => {
+    const heading = [item.title, item.source ? `출처: ${item.source}` : ''].filter(Boolean).join(' · ');
+    const raw = heading ? `${heading}\n${item.content || ''}` : (item.content || '');
+    return renderPassage(raw);
+  }).join('');
 }
 
 // 수식($...$, $$...$$)·SMILES·[COORD:]·[TABLE:]·[FIGURE:]·[FIGURE3D:]·[PASSAGE:]를 HTML로 변환
@@ -3959,18 +3980,50 @@ const SUBJECT_SPEC = {
 </subject_directive>`,
 
   '사회': `<subject_directive>
-【과목: 통합사회】
+【과목: 사회 — 중학교 사회 / 고등학교 통합사회】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 출제 영역:
+  - 중학교: 지리·일반사회 영역을 선택 학년과 시험 범위에 맞게 출제
+  - 고등학교: 통합사회의 인간·공간·사회·윤리 관점을 연결하되 범위 밖 선행 개념 금지
+
+▶ 교과서형 지문 저장소 (byteexam 3s 핵심 문법):
+  - 시험지 앞부분에 지문을 한 번만 정의하고 여러 문항에서 이름으로 참조합니다.
+  - id는 반드시 "textbook text 1", "textbook text 2"처럼 순서대로 지정합니다.
+  - content=는 여러 줄로 작성할 수 있습니다.
+
+[TEXTBOOK]
+id=textbook text 1
+title=지문 제목 또는 자료 유형
+source=출처 기관·문서명 또는 "사용자 제공 교과서 발췌"
+content=교과서 지문 또는 공식 자료를 바탕으로 재구성한 본문
+둘째 줄과 이후 단락도 그대로 이어서 작성
+
+  - 해당 지문이 필요한 문제에는 아래처럼 참조만 추가합니다.
+[QUESTION]
+num=1
+type=5choice
+textbook=textbook text 1
+text=윗글을 바르게 이해한 것은?
+
+  - 한 문제에서 두 지문을 비교하면 textbook=textbook text 1, textbook text 2
+  - 동일 지문을 쓰는 후속 문항에도 같은 textbook= 값을 반복하여 시험지에 지문이 표시되게 합니다.
+  - [TEXTBOOK] 정의를 [QUESTION] 안에 넣지 마십시오.
+
+▶ 지문 정확성·저작권 원칙:
+  - 사용자가 교과서 원문을 제공한 경우에만 원문 그대로 사용하고 source에 제공 사실을 표시합니다.
+  - 웹 조사만으로 특정 출판사 교과서의 긴 원문을 복제하지 마십시오. 공식 자료를 검증해 "교과서형 재구성 지문"으로 작성합니다.
+  - 출처·기관·연도·통계값을 꾸며내지 마십시오. 확인할 수 없으면 안정적인 개념 사례로 대체합니다.
+
 ▶ 자료 분석형:
-  - 통계·그래프·지도 자료를 [TABLE:항목|값\\n국가A|수치] 형식으로 제시
-  - 발문: "다음 자료를 분석한 것으로 옳은 것은?" 형식
-  - 1개 자료 → 2~3문제 세트
+  - 통계·그래프·지도 자료는 [TABLE:항목|값\\n국가A|수치] 또는 [TEXTBOOK] 지문으로 제시
+  - 1개 자료 → 2~3문제 세트, 자료 해석과 개념 적용을 함께 평가
+▶ 개념 이해형: 인권·복지·문화·환경·정치·법·경제 핵심 개념
+▶ 사례 적용형: 구체적 상황에서 이해관계·원칙·정책 효과를 판단
+▶ 비교·논증형: 서로 다른 관점이나 정책 대안을 비교하고 근거의 타당성을 평가
+▶ ㄱㄴㄷ 보기형: 각 보기의 판단 근거가 지문·자료 안에서 확인되도록 구성
 
-▶ 개념 이해형: 인권·복지·문화·환경·경제 핵심 개념 독립 문항
-▶ 사례 적용형: 구체적 상황 제시 후 적절한 개념·원칙 적용 문항
-▶ ᄀᄂᄃ 보기형 자주 활용 (정오 판단 조합 선택)
-
-▶ 지리+역사+사회+윤리 통합 과목 특성 반영.
+⚠️ 지역별 모드는 선택한 지역의 학교명이나 교재를 지어내는 기능이 아닙니다. 지역 맥락과 자료 유형만 반영하십시오.
+⚠️ 사실 확인이 필요한 법령·통계·시사 사례는 공공기관 원문을 우선 확인하십시오.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </subject_directive>`,
 
@@ -4029,6 +4082,9 @@ const SUBJECT_SPEC = {
   '정보': `<subject_directive>
 【과목: 정보·컴퓨팅】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 적용 학년: 고등학교 1~3학년만. 중학교 수준으로 낮추거나 대학 전공 범위를 끌어오지 마십시오.
+▶ 지역별 출제 경향은 적용하지 않습니다. 전국 공통 교육과정과 사용자가 입력한 범위만 기준으로 출제합니다.
+
 ▶ 코드·의사코드형 (핵심 유형):
   - 파이썬 코드 또는 의사코드를 [PASSAGE:Python\\ncode here] 형식으로 삽입
   - 발문: "다음 코드를 실행했을 때 출력 결과는?" 또는 "빈칸에 들어갈 코드는?"
@@ -4041,9 +4097,97 @@ const SUBJECT_SPEC = {
 ▶ 자료구조형:
   - 배열·스택·큐 등 상태 변화: [TABLE:인덱스|값\\n0|10] 형식
 ▶ 계산형: 2진수·16진수 변환, 논리 연산 (AND/OR/NOT/XOR)
-▶ 개념형: 하드웨어·소프트웨어·네트워크·정보보안·AI 핵심 개념
+▶ 개념형: 데이터·알고리즘·프로그래밍·컴퓨팅 시스템·네트워크·정보보안·인공지능·디지털 윤리
+▶ 탐구형: 데이터 전처리와 표현, 알고리즘 선택 이유, 보안·AI 사례의 영향과 책임을 근거로 판단
+
+⚠️ 실행 결과 문항은 내부적으로 실제 추적 검산하고, 정의되지 않은 함수·라이브러리·입력을 만들지 마십시오.
+⚠️ 선택 학년과 범위를 넘는 대학 수준 자료구조·복잡도 이론은 사용자가 범위에 명시한 경우에만 허용합니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</subject_directive>`,
+
+  '파이썬': `<subject_directive>
+【과목: 파이썬】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ 적용 학년: 고등학교 1~3학년만. 지역별 출제 경향은 적용하지 않습니다.
+▶ 실행 환경: Python 3 표준 문법. 외부 패키지는 사용자가 시험 범위에 명시한 경우에만 허용합니다.
+
+▶ 핵심 유형:
+  - 코드 추적: 변수·분기·반복·함수 호출 과정을 단계별로 추론
+  - 코드 완성: 빈칸에 들어갈 조건식·반복식·함수 본문 선택
+  - 오류 수정: 문법 오류와 논리 오류를 구분하고 최소 수정안을 판단
+  - 알고리즘 설계: 입력·출력 조건에 맞는 절차와 자료 표현 선택
+  - 테스트 설계: 정상값·경계값·예외 입력을 골라 코드의 결함을 드러냄
+
+▶ 코드 제시 형식:
+  - 문제의 코드는 [PASSAGE:Python\\n코드]로 삽입합니다.
+  - 들여쓰기는 공백 4칸으로 통일하고 입력값이 필요한 경우 문제에 명시합니다.
+  - 난수·현재 시각·외부 파일·네트워크처럼 실행 결과가 달라지는 요소는 금지합니다.
+
+▶ 학년별 깊이:
+  - 고1: 기본 자료형, 입출력, 조건문, 반복문, 단순 함수 중심
+  - 고2: 리스트·딕셔너리, 중첩 제어, 함수 분해, 기초 탐색·정렬 응용
+  - 고3: 복합 자료 처리, 재사용 가능한 함수 설계, 효율·가독성·테스트 비교
+  - 단, 실제 기준은 사용자가 입력한 시험 범위를 최우선으로 합니다.
+
+⚠️ 모든 코드 문항은 내부적으로 직접 실행 추적하여 정답·해설·선지가 일치하는지 확인하십시오.
+⚠️ 트릭 문법이나 구현체 의존 동작으로 난이도를 올리지 말고, 알고리즘적 사고와 디버깅으로 변별하십시오.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </subject_directive>`
+};
+
+const SUBJECT_DIFF_SPEC = {
+  '사회': {
+    '기본': {
+      transitions:'1회', concepts:'핵심 개념 1개',
+      strategy:'짧은 교과서형 지문에서 명시된 정보를 찾고 핵심 개념을 한 번 적용',
+      distractor:'비슷한 용어 혼동, 원인과 결과의 단순 전도',
+      complexity:'자료 1개와 판단 기준 1개만 사용. 숨은 조건이나 과도한 배경지식 금지.'
+    },
+    '실력': {
+      transitions:'2~3회', concepts:'관련 개념 2개',
+      strategy:'지문·표의 근거를 비교하고 개념을 사례에 적용하여 결론 도출',
+      distractor:'지문의 일부만 맞게 읽은 선택지, 필요조건과 충분조건 혼동',
+      complexity:'서로 다른 자료 2개 또는 관점 2개를 연결하고 근거가 없는 일반화를 판별.'
+    },
+    '강남8학군+전국단위자사고': {
+      transitions:'3~5회', concepts:'지리·정치·법·경제·윤리 중 3개 관점',
+      strategy:'복수 자료의 전제·이해관계·공간적 차이를 종합해 정책 효과와 한계를 평가',
+      distractor:'통계 상관을 인과로 오해, 적용 범위 과잉 일반화, 가치 판단과 사실 판단 혼동',
+      complexity:'2~3개 자료를 교차 검증하고 반례·예외·정책 상충 중 하나 이상을 포함.'
+    },
+    '모의고사변형': {
+      transitions:'3~5회', concepts:'개념+자료해석+사례 적용',
+      strategy:'평가원형 자료 세트 구조를 따르되 공식 통계·법령·사례를 새 맥락으로 재구성',
+      distractor:'자료 단위·기준연도·비교집단 누락, 제시문 관점의 반대 적용',
+      complexity:'지문과 표를 함께 읽어야 하며 조건 하나를 바꾸면 결론이 달라지는 구조.'
+    },
+    '과학고+영재고': {
+      transitions:'5회 이상', concepts:'사회과 다관점 4개 이상',
+      strategy:'불완전한 자료의 한계를 밝히고 대안 가설·정책을 근거와 함께 설계하는 탐구형',
+      distractor:'검증 불가능한 주장, 대표성 오류, 윤리적 비용을 누락한 최적화',
+      complexity:'자료 신뢰도 평가+반례 탐색+대안 설계가 모두 필요하며 서술형을 적극 포함.'
+    }
+  },
+  '정보': {
+    '기본': { transitions:'1회', concepts:'핵심 개념 또는 코드 요소 1개', strategy:'정의 확인·단순 코드 추적·기초 표현 변환', distractor:'연산 순서나 자료형을 한 번 잘못 적용한 결과', complexity:'5~8줄 이하 코드, 분기·반복 중 하나만 사용.' },
+    '실력': { transitions:'2~3회', concepts:'정보 개념 2개', strategy:'표·코드·알고리즘의 상태를 단계별 추적하고 적절한 표현을 선택', distractor:'경계값 누락, 반복 횟수 오산, 논리 연산 우선순위 오류', complexity:'중첩 제어 또는 두 자료 표현을 연결하되 실행 결과는 결정적이어야 함.' },
+    '강남8학군+전국단위자사고': { transitions:'3~5회', concepts:'알고리즘+데이터+시스템/보안 중 3개', strategy:'여러 제약 아래 알고리즘과 자료 표현을 비교하고 오류·보안 취약점을 분석', distractor:'평균 경우만 고려, 입력 검증 누락, 데이터 편향 또는 권한 경계 오해', complexity:'복수 테스트케이스, 경계값, 설계 선택의 장단점을 함께 판단.' },
+    '모의고사변형': { transitions:'3~5회', concepts:'코드 추적+자료해석+디지털 윤리/AI', strategy:'표준화된 자료 세트와 코드 사례를 새 조건으로 변형해 종합 판단', distractor:'조건 변경 전 결과를 그대로 적용, 표의 단위·범례 오독', complexity:'코드와 표를 함께 사용하고 조건 역전 또는 입력 변경을 최소 1회 포함.' },
+    '과학고+영재고': { transitions:'5회 이상', concepts:'알고리즘 설계+검증+사회적 영향', strategy:'불변식·반례·테스트를 이용해 설계를 증명하거나 개선안을 제시', distractor:'특정 예시에서만 성립하는 일반화, 정확성·공정성·보안 중 하나를 누락한 해법', complexity:'비정형 설계형 또는 서술형 중심. 고급 선행 문법이 아니라 추론 깊이로 난이도 확보.' }
+  },
+  '파이썬': {
+    '기본': { transitions:'1회', concepts:'문법 요소 1개', strategy:'짧은 코드의 출력·빈칸·단순 오류 확인', distractor:'들여쓰기, 범위 끝값, 대입과 비교 혼동', complexity:'8줄 이하, 단일 분기 또는 반복. 트릭 문법 금지.' },
+    '실력': { transitions:'2~3회', concepts:'제어 흐름+자료형 또는 함수', strategy:'변수 상태와 함수 반환값을 추적해 결과·수정안을 판단', distractor:'얕은 복사 오해, 인덱스 경계, return 위치 오류', complexity:'중첩 제어 1회 또는 함수 2개 이하, 경계값 1개 포함.' },
+    '강남8학군+전국단위자사고': { transitions:'3~5회', concepts:'자료구조+함수 분해+알고리즘', strategy:'복합 입력 조건에서 코드 정확성과 효율·가독성을 비교', distractor:'일반 입력은 통과하지만 빈 입력·중복값·최댓값에서 실패하는 코드', complexity:'복수 함수와 테스트케이스를 사용하되 표준 라이브러리 범위 유지.' },
+    '모의고사변형': { transitions:'3~5회', concepts:'코드 추적+오류 수정+테스트 설계', strategy:'익숙한 코드의 조건·반복·입력 제약을 바꿔 결과가 달라지는 변형형', distractor:'변형 전 출력, 한 반복 조기 종료, 경계값 미처리', complexity:'조건 역전·입력 변경·반복 범위 변경 중 2가지 이상 결합.' },
+    '과학고+영재고': { transitions:'5회 이상', concepts:'알고리즘 설계+불변식+검증', strategy:'새 알고리즘을 설계하고 반례·복잡도·테스트로 타당성을 논증', distractor:'샘플만 통과하는 과적합 코드, 종료성·정확성 중 하나가 빠진 해법', complexity:'서술형과 코드 설계형 중심. 대학 라이브러리 대신 창의적 알고리즘 사고로 변별.' }
+  }
+};
+
+const SUBJECT_VARIETY = {
+  '사회': `【사회 문항 구성】\n▸ 교과서형 지문·공식 자료 참조형 30% 이상\n▸ 표·통계·지도 자료 분석형 20% 이상\n▸ 개념 적용·사례 판단형 20% 이상\n▸ 관점 비교·논증·서술형 10% 이상 (객관식 전용이면 ㄱㄴㄷ형으로 대체)\n▸ 단순 정의 암기형은 기본 난이도 외 전체의 20% 이하`,
+  '정보': `【정보 문항 구성】\n▸ 코드·의사코드 추적형 25% 이상\n▸ 데이터·표·알고리즘 분석형 20% 이상\n▸ 오류 수정·보안·AI·디지털 윤리 사례형 20% 이상\n▸ 계산만 반복하는 2진수 변환형은 전체의 15% 이하`,
+  '파이썬': `【파이썬 문항 구성】\n▸ 코드 추적형 25% 이상\n▸ 코드 완성·오류 수정형 25% 이상\n▸ 알고리즘·테스트 설계형 20% 이상\n▸ 같은 for 반복 출력 유형을 연속 배치하지 말고 분기·함수·자료형을 고르게 혼합`
 };
 
 function buildPrompt() {
@@ -4056,7 +4200,6 @@ function buildPrompt() {
   const diff       = isSuneung ? $('suneungDiffSel').value
                    : isLicense ? $('licenseDiffSel').value
                    : isMock    ? ($('mockDiffSel') ? $('mockDiffSel').value : '모의고사-중간')
-                   : (_aigSubMode === '지역별' && _aigRegion === '대전') ? '대전권기출'
                    : $('diffSel').value;
   const extra      = isSuneung ? $('suneungExtraInput').value.trim()
                    : isLicense ? $('licenseExtraInput').value.trim()
@@ -4076,7 +4219,14 @@ function buildPrompt() {
   /* 자격증: 시험 설명 추가 */
   const licenseDesc = isLicense ? ($('licenseDescInput').value.trim()) : '';
   const half  = Math.ceil(total/2);
-  const spec = DIFF_SPEC[diff] || DIFF_SPEC['기본'];
+  const genericSpec = DIFF_SPEC[diff] || DIFF_SPEC['기본'];
+  const subjectLevel = SUBJECT_DIFF_SPEC[_aigSubject] && SUBJECT_DIFF_SPEC[_aigSubject][diff];
+  const spec = subjectLevel ? {
+    ...genericSpec,
+    ...subjectLevel,
+    variety: SUBJECT_VARIETY[_aigSubject],
+    detail: `\n【${_aigSubject} — ${diff} 난이도 캘리브레이션】\n▸ 목표 사고 전환: ${subjectLevel.transitions}\n▸ 결합 요소: ${subjectLevel.concepts}\n▸ 핵심 설계: ${subjectLevel.strategy}\n▸ 대표 오답 원리: ${subjectLevel.distractor}\n▸ 복잡성 기준: ${subjectLevel.complexity}\n⚠️ 어려운 용어·긴 코드·긴 지문만으로 난이도를 위장하지 말고 실제 추론 단계로 변별하십시오.`
+  } : genericSpec;
 
   /* 배점 계산: 항상 합계 = 100점, 문항 수 = total 보장
      가능 범위: 20문항(전부5pt=100) ~ 50문항(전부2pt=100)
@@ -4353,6 +4503,10 @@ choice5=⑤ ㄱ, ㄴ, ㄷ
     subjectBlock = `\n<subject_directive>\n【과목: ${subjName}】\n${subjDesc ? `▸ 과목 특성: ${subjDesc}\n` : ''}▸ 이 과목의 실제 시험지 형식에 맞게 적절한 자료(표·그래프·지문 등)를 활용하여 출제하십시오.\n</subject_directive>`;
   }
 
+  const regionBlock = _aigSubMode === '지역별' && _aigRegion && REGION_DATA[_aigRegion]
+    ? `\n<regional_context>\n${REGION_DATA[_aigRegion]}\n⚠️ 위 내용은 출제 맥락을 조정하기 위한 참고값입니다. 특정 학교의 실제 출제 비율·성취도라고 단정하지 말고, 변할 수 있는 사실은 공식 자료로 재검증하십시오.\n⚠️ 지역 선택은 난이도를 바꾸지 않습니다. 난이도는 사용자가 고른 "${diff}"를 그대로 유지하십시오.\n</regional_context>`
+    : '';
+
   /* 사용자가 특정 단원을 지정했는지 감지 → 단원 수 제한 오버라이드 */
   const scopeUnitCount = (scope.match(/[,，、·]\s*[가-힣]/g) || []).length + 1;
   const isNarrowScope = scope.length > 0 && scope !== '(시험 범위 미입력)' && scopeUnitCount <= 2;
@@ -4446,7 +4600,7 @@ ${objOnly ? `
 ▸ 타 학년 선행 개념은 출제 범위에 명시되지 않는 한 절대 사용 금지입니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 </exam_specification>
-${categoryBlock}${subjectBlock}${scopeOverride}
+${categoryBlock}${subjectBlock}${regionBlock}${scopeOverride}
 <autonomous_research_directive>
 ⚠️ 즉각 문항을 생성하지 마십시오. 반드시 아래 순서(준비→탐색→계획→실행)를 따르십시오.
 
@@ -4463,6 +4617,14 @@ ${categoryBlock}${subjectBlock}${scopeOverride}
    마지막에 반드시 추가: "💡 AI의 사고 모드(잘 생각하기 / Pro 모드)로 전환하셨나요? 고품질 시험지 생성을 위해 전환을 강력 권장합니다."
 → 사용자 답변을 받은 후에만 STEP 1로 진행하십시오.
 
+${SUBJECT_DIFF_SPEC[subject] ? `【STEP 0.5 — 공식 근거 조사·검증】
+▸ Deep Research·웹 검색 도구가 있으면 NCIC 교육과정·성취수준, 교육부·평가원, 국가법령정보센터, 통계청 등 1차 자료를 우선 확인하십시오.
+▸ 변할 수 있는 법령·통계·정책 사실은 서로 독립된 공식 근거 2개로 교차 검증하십시오.
+▸ 검색 도구가 없으면 출처·수치·교과서 문장을 추측하지 말고 안정적인 교육과정 개념과 직접 검산 가능한 자료만 사용하십시오.
+▸ 조사 메모와 검색 과정은 출력하지 말고, 시험지에 실제 사용한 자료의 출처만 source= 필드에 남기십시오.
+${subject === '사회' ? '▸ 사회 지문은 사용자 제공 원문 또는 공식 자료 기반의 교과서형 재구성문만 사용합니다. 특정 출판사 교과서 원문을 웹에서 길게 복제하거나 가짜 쪽수를 만들지 마십시오.' : ''}
+${subject === '정보' || subject === '파이썬' ? '▸ 모든 코드·의사코드는 내부 실행 추적과 경계값 테스트를 거쳐 출력·정답·해설이 일치하는지 검증하십시오.' : ''}` : ''}
+
 【STEP 1 — 문항 구조 확보 (문항 생성 전 필수)】
 ⚠️ 이 단계를 건너뛰고 즉각 문항을 생성하면 안 됩니다.
 ⚠️ 구조 확보 없이 바로 창작하면 난이도와 독창성이 목표 수준에 미치지 못합니다.
@@ -4470,16 +4632,21 @@ ${categoryBlock}${subjectBlock}${scopeOverride}
 【1A — 구조 확보 방법】
 
 ▶ 직접 변형·응용·개량 (Original Creation)
-  내부 학습 데이터 구조 또는 수학적 명제·정리에서 출발하여 직접 설계합니다:
+${SUBJECT_DIFF_SPEC[subject] ? `  ${subject} 과목의 성취기준·자료·코드 구조에서 출발하여 직접 설계합니다:
+  - 자료 변형: 기준 연도·비교 집단·입력값·조건을 바꾸고 결론이 실제로 어떻게 달라지는지 검산
+  - 관점 전환: 원인↔결과, 생산자↔소비자, 사용자↔시스템, 정상값↔경계값 관점 비교
+  - 근거 결합: 지문·표·코드 중 2개 이상을 연결하되 선택 학년과 시험 범위 안에서만 구성
+  - 반례 탐색: 겉보기 일반화가 무너지는 사례를 설계해 오답 선지와 해설에 반영
+  - 동일 소재라도 묻는 사고 기능(찾기·적용·비교·평가·설계)이 반복되지 않도록 구성` : `  내부 학습 데이터 구조 또는 수학적 명제·정리에서 출발하여 직접 설계합니다:
   - 조건 일반화: 특수값 → 매개변수 m으로 확장 / 조건 역전: 결론↔조건 뒤집기
   - 차원 확장: 1변수 → 다변수, 이산 → 연속 / 함정 이동: 함정 위치 변경 또는 추가
   - 단원 융합: 서로 다른 단원의 핵심 개념 2개를 하나의 조건 안에 결합
   - 수학적 정리를 "만족/불만족 경계"로 조건화, 증명 흐름을 역전해 문항 구성
-  - 풀이 경로 2가지 이상 존재하도록 구조 설계 (독창성 보장)
+  - 풀이 경로 2가지 이상 존재하도록 구조 설계 (독창성 보장)`}
 
 내부 참고 (출력 불필요 — 설계 과정에서만 활용):
   ▸ 선택한 방법: (웹 참고·변형 / 직접 변형·응용·개량)
-  ▸ 핵심 수학 구조: (정수론 / 조합론 / 귀납 / 함수 / 융합 등)
+  ▸ 핵심 평가 구조: (자료 해석 / 개념 적용 / 코드 추적 / 오류 수정 / 논증 / 설계 등)
   ▸ 복잡성 요소: (숨은 조건, 다층 케이스, 단원 융합, 매개변수 등)
   ▸ 독창성 설계: (비정형 풀이 경로, 함정 위치, 반례 포인트)
   ▸ 난이도 조정: (원형 대비 어렵게 한 지점)
@@ -4492,7 +4659,7 @@ ${spec.complexity || '(이 난이도는 별도 복잡성 체크리스트 없음 
 【1C — 구조 설계 결과 내부 점검 (출력 불필요)】
 설계된 구조를 아래 기준으로 내부 점검 후 STEP 2 진행:
    ▸ 설계한 구조 수 ≥ ${total}개인가?
-   ▸ 핵심 수학 원형 다양성 확보 여부
+   ▸ 핵심 문항 원형 다양성 확보 여부
    ▸ 난이도 복잡성 요소가 충분히 반영되었는가?
    ▸ 각 문항 번호별 설계 계획 정리 완료 여부
    ※ 이 점검 결과를 코드 블록 밖에 출력하지 마십시오.
@@ -4876,6 +5043,29 @@ The Industrial Revolution, which began in Britain in the late 18th century,
 transformed manufacturing processes and led to urbanization on an unprecedented scale.] What is the main topic of the passage?
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${subject === '사회' ? `【7. 재사용 교과서 지문 [TEXTBOOK] — 사회 필수 문법】
+긴 지문을 문제마다 반복하지 말고 시험지 상단에서 한 번 정의한 뒤 textbook=으로 참조합니다.
+
+[TEXTBOOK]
+id=textbook text 1
+title=자료 제목
+source=공식 기관·문서명 또는 사용자 제공 교과서 발췌
+content=첫째 줄
+둘째 줄
+
+[QUESTION]
+num=1
+type=5choice
+textbook=textbook text 1
+text=윗글을 바르게 이해한 것은?
+
+규칙:
+  - id는 textbook text 1부터 빠짐없이 증가
+  - content=의 여러 줄은 다음 [TEXTBOOK]/[QUESTION] 블록 전까지 모두 지문으로 저장
+  - 비교 문항: textbook=textbook text 1, textbook text 2
+  - 참조하지 않는 [TEXTBOOK] 블록 생성 금지
+  - 지문을 text=에 다시 복사하지 말 것
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━` : ''}
 
 ---BYTEEXAM-START---
 [HEADER]
@@ -4884,16 +5074,32 @@ subject=${scope}
 difficulty=${diff}
 date=YYYY-MM-DD
 total=${total}
+${subject === '사회' ? `
+[TEXTBOOK]
+id=textbook text 1
+title=교과서형 자료 제목
+source=검증한 공식 출처 또는 사용자 제공 교과서 발췌
+content=여기에 여러 줄 지문을 작성합니다.
+필요한 만큼 문단을 이어서 작성합니다.
+` : ''}
 
 [QUESTION]
 num=1
 type=5choice
-text=문제 내용 (수식: $인라인$ 또는 $$블록$$)
-choice1=① [학생 실수 패턴 기반 오답]
+${subject === '사회' ? 'textbook=textbook text 1\n' : ''}text=문제 내용 (수식: $인라인$ 또는 $$블록$$)
+${subject === '사회' ? `choice1=① [지문의 일부만 맞게 해석한 오답]
+choice2=② [원인과 결과를 뒤바꾼 오답]
+choice3=③ [정답]
+choice4=④ [적용 범위를 과도하게 일반화한 오답]
+choice5=⑤ [사실 판단과 가치 판단을 혼동한 오답]` : (subject === '정보' || subject === '파이썬') ? `choice1=① [경계값을 누락한 결과]
+choice2=② [반복·분기 한 단계를 잘못 추적한 결과]
+choice3=③ [정답]
+choice4=④ [자료형·연산 순서를 혼동한 결과]
+choice5=⑤ [변경 전 조건을 그대로 적용한 결과]` : `choice1=① [학생 실수 패턴 기반 오답]
 choice2=② [중간 단계 조기 종료값]
 choice3=③ [정답]
 choice4=④ [부호·역수 실수 결과]
-choice5=⑤ [직관적 함정값]
+choice5=⑤ [직관적 함정값]`}
 answer=3
 point=3
 explain=풀이 단계: ① → ② → 최종 답 도출 논리 및 오답 선지의 오류 원인
@@ -4968,32 +5174,11 @@ $('copyBtn2').addEventListener('click', copyPrompt);
    시험지 파서
 ════════════════════════════════ */
 function parseExam(raw) {
-  const s = raw.indexOf('---BYTEEXAM-START---');
-  const e = raw.indexOf('---BYTEEXAM-END---');
-  const body = (s>=0&&e>s) ? raw.slice(s+20,e) : raw;
-  const header = {}, questions = [], answerSheet = {};
-  // pages: [[q,q,...],[q,q,...],...] — [PAGE] 기준으로 분리, 없으면 전체가 1페이지
-  const pages = [[]];
-  let cur = null, inAnswerSheet = false;
-  for (const line of body.split('\n')) {
-    const t = line.trim();
-    if (!t||t.startsWith('---')) continue;
-    if (t==='[HEADER]')       { cur=null; inAnswerSheet=false; continue; }
-    if (t==='[PAGE]')         { pages.push([]); cur=null; continue; }
-    if (t==='[QUESTION]')     { cur={}; questions.push(cur); pages[pages.length-1].push(cur); inAnswerSheet=false; continue; }
-    if (t==='[ANSWER_SHEET]') { cur=null; inAnswerSheet=true; continue; }
-    const eq = t.indexOf('=');
-    if (eq<0) continue;
-    const k=t.slice(0,eq).trim(), v=t.slice(eq+1).trim();
-    if (inAnswerSheet)  answerSheet[k]=v;
-    else if (!cur)      header[k]=v;
-    else                cur[k]=v;
-  }
-  return {header, questions, answerSheet, pages};
+  return ByteExamDSL.parseExam(raw);
 }
 
 function renderExamHTML(raw, meta={}) {
-  const {header,questions,answerSheet} = parseExam(raw);
+  const {header,textbooks,questions,answerSheet} = parseExam(raw);
   const title   = header.title      || meta.title      || '시험지';
   const subject = header.subject    || meta.scope       || '';
   const diff    = header.difficulty || meta.difficulty  || '';
@@ -5003,6 +5188,7 @@ function renderExamHTML(raw, meta={}) {
   /* 문제 카드 렌더 — break-inside:avoid 로 절대 중간 잘림 없음 */
   function rQ(q, idx) {
     let h = `<div class="exam-q" data-qidx="${idx}">`;
+    h += renderQuestionPassages(q, textbooks);
     h += `<span class="exam-q-num">${esc(q.num||'')}</span>`;
     if (q.point==='4') h += `<span class="exam-q-star">★</span>`;
     const typeTag = (q.type==='short'||q.type==='bogi_with_short')?'[서답형] ':(q.type==='essay'||q.type==='bogi_with_essay')?'[서술형] ':'';
@@ -5183,7 +5369,7 @@ $('delExamBtn').addEventListener('click', async ()=>{
 async function buildPdfDom(id) {
     const exam = await api('GET', `/api/exams/${id}`);
     const safeName = (exam.title||'시험지').replace(/[\\/:*?"<>|]/g,'_');
-    const {header, questions, pages: rawPages} = parseExam(exam.content);
+    const {header, textbooks, questions, pages: rawPages} = parseExam(exam.content);
     const title   = header.title      || exam.title      || '시험지';
     const subject = header.subject    || exam.scope       || '';
     const diff    = header.difficulty || exam.difficulty  || '';
@@ -5194,6 +5380,7 @@ async function buildPdfDom(id) {
 
     function rQFlat(q) {
       let h = `<div style="margin-bottom:${Q_MARGIN}px">`;
+      h += renderQuestionPassages(q, textbooks);
       h += `<span style="font-weight:700;font-size:13px;display:inline-block;min-width:22px">${esc(q.num||'')}</span>`;
       if (q.point==='4') h += `<span style="color:#e53e3e;font-size:10px;vertical-align:super">★</span>`;
       const tt = (q.type==='short'||q.type==='bogi_with_short')?'[서답형] ':(q.type==='essay'||q.type==='bogi_with_essay')?'[서술형] ':'';
@@ -5769,30 +5956,14 @@ function renderToc(questions) {
 }
 
 /* ── DSL 재구성 (편집 후 저장용) ── */
-function reconstructDSL(header, questions) {
-  let out = '---BYTEEXAM-START---\n[HEADER]\n';
-  ['title','subject','difficulty','date','total'].forEach(k => {
-    if (header[k]) out += `${k}=${header[k]}\n`;
-  });
-  questions.forEach(q => {
-    out += '\n[QUESTION]\n';
-    const fields = ['num','type','text','bogi_1','bogi_2','bogi_3',
-      'choice1','choice2','choice3','choice4','choice5',
-      'answer','answer_text','point','explain'];
-    fields.forEach(k => { if (q[k]) out += `${k}=${q[k]}\n`; });
-  });
-  out += '\n[ANSWER_SHEET]\n';
-  questions.forEach(q => {
-    const ans = q.answer_text || q.answer || '';
-    if (q.num && ans) out += `${q.num}=${ans}\n`;
-  });
-  out += '---BYTEEXAM-END---';
-  return out;
+function reconstructDSL(header, questions, textbooks, answerSheet) {
+  return ByteExamDSL.serializeExam(header, textbooks || [], questions, answerSheet || {});
 }
 
 /* ── 단일 문제 HTML 렌더 (saveQEdit 빠른 업데이트용) ── */
 function renderSingleQ(q, idx) {
   let h = `<div class="exam-q" data-qidx="${idx}">`;
+  h += renderQuestionPassages(q, (_currentExam && _currentExam.textbooks) || []);
   h += `<span class="exam-q-num">${esc(q.num||'')}</span>`;
   if (q.point==='4') h += `<span class="exam-q-star">★</span>`;
   const typeTag = (q.type==='short'||q.type==='bogi_with_short')?'[서답형] ':(q.type==='essay'||q.type==='bogi_with_essay')?'[서술형] ':'';
@@ -5857,7 +6028,7 @@ async function saveQEdit() {
   $('rpStatus').textContent = '저장 중…';
 
   /* 3. API 저장 (백그라운드) */
-  const newContent = reconstructDSL(_currentExam.header, _currentExam.questions);
+  const newContent = reconstructDSL(_currentExam.header, _currentExam.questions, _currentExam.textbooks, _currentExam.answerSheet);
   _currentExam.content = newContent;
   api('PATCH', `/api/exams/${_currentExam.id}`, { content: newContent })
     .then(() => {
@@ -5882,7 +6053,7 @@ let _aigCategory   = '';   /* '내신' | '수능' | '자격증' */
 let _aigSubMode    = '';   /* '지역별' | '난이도유형별' | '모의고사대비' */
 let _aigRegion     = '';   /* '서울' | '경기' | ... */
 let _aigDiffPreset = '';   /* 난이도유형별 선택 시 미리 선택된 난이도 */
-let _aigSubject    = '';   /* '국어'|'수학'|'영어'|'역사'|'사회'|'과학'|'기술가정'|'도덕'|'정보'|'기타' */
+let _aigSubject    = '';   /* '국어'|'수학'|'영어'|'역사'|'사회'|'과학'|'기술가정'|'도덕'|'정보'|'파이썬'|'기타' */
 let _aigSubjectCustomName = '';
 let _aigSubjectCustomDesc = '';
 let _aigSuneungMode = 'normal'; /* 수능 모드: 'normal' | 'suneung' */
@@ -5921,6 +6092,19 @@ function selectAigSubject(subj) {
   $('aigDoktoogleWrap').style.display = subj === '독토글' ? '' : 'none';
   if (subj !== '기타') { _aigSubjectCustomName = ''; _aigSubjectCustomDesc = ''; }
   if (subj !== '독토글') { _aigDoktoogleBooks = []; document.querySelectorAll('#aigDoktoogleWrap input[type=checkbox]').forEach(c => c.checked = false); }
+
+  const supportsRegion = subj === '사회' || subj === '수학';
+  $('aigSubModeWrap').style.display = supportsRegion ? '' : 'none';
+  selectAigSubMode('난이도유형별');
+
+  /* 정보·파이썬은 요청대로 고등학교 1~3학년만 제공한다. */
+  const highSchoolOnly = subj === '정보' || subj === '파이썬';
+  Array.from($('gradeSel').options).forEach(option => {
+    const isMiddle = /^중/.test(option.value);
+    option.disabled = highSchoolOnly && isMiddle;
+    option.hidden = highSchoolOnly && isMiddle;
+  });
+  if (highSchoolOnly && /^중/.test($('gradeSel').value)) $('gradeSel').value = '고1';
 }
 /* 기타 입력 변경 시 즉시 반영 */
 document.addEventListener('DOMContentLoaded', () => {
@@ -5940,11 +6124,11 @@ function selectAigSubMode(mode) {
   _aigSubMode = mode;
   _aigRegion = '';
   _aigDiffPreset = '';
-  document.querySelectorAll('.aig-submode-btn').forEach(b => b.classList.remove('active'));
-  const idMap = { '지역별': 'subModeRegionBtn', '난이도유형별': 'subModeDiffBtn', '모의고사대비': 'subModeMockBtn' };
-  if (idMap[mode]) $(idMap[mode]).classList.add('active');
+  ['subModeRegionBtn', 'subModeDiffBtn'].forEach(id => { if ($(id)) $(id).classList.remove('active'); });
+  const idMap = { '지역별': 'subModeRegionBtn', '난이도유형별': 'subModeDiffBtn' };
+  if (idMap[mode] && $(idMap[mode])) $(idMap[mode]).classList.add('active');
   $('aigRegionWrap').style.display = mode === '지역별' ? '' : 'none';
-  $('aigDiffPresetWrap').style.display = mode === '난이도유형별' ? '' : 'none';
+  if ($('aigDiffPresetWrap')) $('aigDiffPresetWrap').style.display = 'none';
   if ($('aigDiffPresetNotice')) $('aigDiffPresetNotice').style.display = 'none';
   document.querySelectorAll('.aig-region-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.aig-diff-preset-btn').forEach(b => b.classList.remove('active'));
@@ -6101,6 +6285,7 @@ function aigNext() {
     if (_aigStep === 1) {
       if (!_aigCategory) { toast('시험 유형을 선택하세요', 'err'); return; }
       if (_aigCategory === '내신' && !_aigSubject) { toast('과목을 선택하세요', 'err'); return; }
+      if (_aigSubMode === '지역별' && !_aigRegion) { toast('지역을 선택하세요', 'err'); return; }
       if (_aigSubject === '독토글' && (!_aigDoktoogleBooks || _aigDoktoogleBooks.length === 0)) { toast('책을 1권 이상 선택하세요', 'err'); return; }
       /* 수능/독토글: step 2 범위 입력 건너뜀 → 바로 step 3 */
       if (_aigCategory === '수능' || _aigSubject === '독토글') { aigGo(3); return; }
@@ -6152,8 +6337,9 @@ async function aigDoSave() {
 
 function openAiPanel() {
   /* 카테고리 상태 초기화 */
-  _aigCategory = ''; _aigSubMode = ''; _aigRegion = ''; _aigDiffPreset = ''; _aigSuneungMode = 'normal'; _aigSuneungCurriculum = '2022개정'; _aigLicenseMode = 'normal';
-  document.querySelectorAll('.aig-cat-btn,.aig-submode-btn,.aig-region-btn,.aig-diff-preset-btn').forEach(b => b.classList.remove('active'));
+  _aigCategory = ''; _aigSubMode = ''; _aigRegion = ''; _aigDiffPreset = ''; _aigSubject = ''; _aigSuneungMode = 'normal'; _aigSuneungCurriculum = '2022개정'; _aigLicenseMode = 'normal';
+  document.querySelectorAll('.aig-cat-btn,.aig-submode-btn,.aig-region-btn,.aig-diff-preset-btn,.aig-subject-btn').forEach(b => b.classList.remove('active'));
+  Array.from($('gradeSel').options).forEach(option => { option.disabled = false; option.hidden = false; });
   if ($('aigSubModeWrap'))             $('aigSubModeWrap').style.display             = 'none';
   if ($('aigRegionWrap'))              $('aigRegionWrap').style.display              = 'none';
   if ($('aigDiffPresetWrap'))          $('aigDiffPresetWrap').style.display          = 'none';

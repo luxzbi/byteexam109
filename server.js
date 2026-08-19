@@ -10,6 +10,7 @@ const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
 const cors       = require('cors');
 const { Pool }   = require('pg');
+const { parseExam, getQuestionPassages } = require('./public/byteexam-dsl');
 
 const app  = express();
 const PORT = process.env.PORT || 4001;
@@ -315,19 +316,7 @@ app.get('/api/exams/:id/docx', auth, async (req, res) => {
     const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, TableLayoutType } = require('docx');
     const TW = 10440;
     const content = exam.content || '';
-    const startIdx = content.indexOf('---BYTEEXAM-START---');
-    const endIdx   = content.indexOf('---BYTEEXAM-END---');
-    const raw = startIdx !== -1 && endIdx !== -1 ? content.slice(startIdx + 20, endIdx) : content;
-    const header = {}; const questions = []; let curQ = null;
-    for (const line of raw.split('\n')) {
-      const t2 = line.trim();
-      if (!t2 || t2.startsWith('---')) continue;
-      if (t2 === '[HEADER]') { curQ = null; continue; }
-      if (t2 === '[QUESTION]') { curQ = {}; questions.push(curQ); continue; }
-      const eq = t2.indexOf('='); if (eq < 0) continue;
-      const k = t2.slice(0, eq).trim(), v = t2.slice(eq + 1).trim();
-      if (!curQ) header[k] = v; else curQ[k] = v;
-    }
+    const { header, textbooks, questions } = parseExam(content);
     const title   = header.title      || exam.title     || '시험지';
     const subject = header.subject    || exam.scope      || '';
     const diff    = header.difficulty || exam.difficulty || '';
@@ -338,6 +327,13 @@ app.get('/api/exams/:id/docx', auth, async (req, res) => {
     function t(text, opts = {}) { return new TextRun({ text: String(text || ''), font: '맑은 고딕', size: opts.size || 22, bold: !!opts.bold, color: opts.color || '111111' }); }
     function makeQParas(q) {
       const paras = [];
+      for (const passage of getQuestionPassages(q, textbooks)) {
+        const heading = [passage.title, passage.source ? `출처: ${passage.source}` : ''].filter(Boolean).join(' · ');
+        if (heading) paras.push(new Paragraph({ spacing: { before: 100, after: 30 }, children: [t(heading, { bold: true, size: 19, color: '555555' })] }));
+        for (const line of String(passage.content || '').split('\n')) {
+          paras.push(new Paragraph({ indent: { left: 160, right: 160 }, spacing: { before: 10, after: 10 }, children: [t(line, { size: 19 })] }));
+        }
+      }
       const tp = q.type === 'short' ? '[단답형] ' : q.type === 'essay' ? '[서술형] ' : '';
       paras.push(new Paragraph({ spacing: { before: 80, after: 30 }, children: [t(`${q.num || ''}.`, { bold: true }), t('  ' + tp + (q.text || ''))] }));
       if (q.bogi_1 || q.bogi_2 || q.bogi_3) ['1','2','3'].forEach((n, i) => { if (q['bogi_'+n]) paras.push(new Paragraph({ indent: { left: 240 }, spacing: { before: 16, after: 16 }, children: [t('ㄱㄴㄷ'[i] + '. ' + q['bogi_'+n], { size: 20 })] })); });
@@ -384,19 +380,7 @@ app.get('/api/exams/:id/preview', (req, res, next) => {
     if (!rows[0]) return res.status(404).send('<h2>시험지를 찾을 수 없습니다.</h2>');
     const exam = rows[0];
     const content = exam.content || '';
-    const startIdx = content.indexOf('---BYTEEXAM-START---');
-    const endIdx   = content.indexOf('---BYTEEXAM-END---');
-    const raw = startIdx !== -1 && endIdx !== -1 ? content.slice(startIdx + 20, endIdx) : content;
-    const header = {}; const questions = []; let curQ = null;
-    for (const line of raw.split('\n')) {
-      const t2 = line.trim();
-      if (!t2 || t2.startsWith('---')) continue;
-      if (t2 === '[HEADER]') { curQ = null; continue; }
-      if (t2 === '[QUESTION]') { curQ = {}; questions.push(curQ); continue; }
-      const eq = t2.indexOf('='); if (eq < 0) continue;
-      const k = t2.slice(0, eq).trim(), v = t2.slice(eq + 1).trim();
-      if (!curQ) header[k] = v; else curQ[k] = v;
-    }
+    const { header, textbooks, questions } = parseExam(content);
     const title   = header.title      || exam.title     || '시험지';
     const subject = header.subject    || exam.scope      || '';
     const diff    = header.difficulty || exam.difficulty || '';
@@ -408,9 +392,15 @@ app.get('/api/exams/:id/preview', (req, res, next) => {
       if (q.type && q.type.includes('choice')) { html += '<div style="margin:4px 0 4px 12px;font-size:11.5px">'; ['1','2','3','4','5'].forEach((n,i) => { if (q['choice'+n]) html += `<div>${sym[i]} ${esc(q['choice'+n])}</div>`; }); html += '</div>'; }
       return html;
     }
+    function makePassages(q) {
+      return getQuestionPassages(q, textbooks).map(passage => {
+        const heading = [passage.title, passage.source ? `출처: ${passage.source}` : ''].filter(Boolean).join(' · ');
+        return `<div style="border:1px solid #aaa;background:#fafafa;border-radius:4px;padding:8px 10px;margin:5px 0;font-size:11px;line-height:1.65;white-space:pre-wrap">${heading ? `<div style="font-weight:700;border-bottom:1px solid #ddd;padding-bottom:3px;margin-bottom:4px">${esc(heading)}</div>` : ''}${esc(passage.content || '')}</div>`;
+      }).join('');
+    }
     const typeLabel = { short:'[단답형] ', essay:'[서술형] ', '':'', undefined:'' };
     const half = Math.ceil(questions.length / 2);
-    function renderQs(qs) { return qs.map(q => `<div style="margin-bottom:12px;break-inside:avoid"><div style="font-size:12.5px"><strong>${esc(q.num||'')}.</strong><span style="color:#555;font-size:11px">${esc(typeLabel[q.type]||'')}</span>${esc(q.text||'')}</div>${makeChoices(q)}${q.point?`<div style="font-size:10.5px;color:#999">[${esc(q.point)}점]</div>`:''}</div>`).join(''); }
+    function renderQs(qs) { return qs.map(q => `<div style="margin-bottom:12px;break-inside:avoid">${makePassages(q)}<div style="font-size:12.5px"><strong>${esc(q.num||'')}.</strong><span style="color:#555;font-size:11px">${esc(typeLabel[q.type]||'')}</span>${esc(q.text||'')}</div>${makeChoices(q)}${q.point?`<div style="font-size:10.5px;color:#999">[${esc(q.point)}점]</div>`:''}</div>`).join(''); }
     const answerRows = questions.map(q => `<td style="border:1px solid #ccc;padding:4px 8px;text-align:center;min-width:60px"><div style="color:#6c63ff;font-weight:700;font-size:11px">${esc(String(q.num||''))}</div><div style="font-size:11px">${esc(q.answer_text||q.answer||'')}</div></td>`).join('');
     const explainSection = questions.filter(q=>q.explain).map(q => `<div style="margin-bottom:8px;font-size:11.5px"><strong>${esc(q.num)}번.</strong> ${esc(q.explain)}</div>`).join('');
     const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
