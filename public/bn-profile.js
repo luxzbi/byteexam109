@@ -15,6 +15,18 @@
       + '?' + (token() ? 'from=' : 'redirect=') + encodeURIComponent(location.href);
   }
 
+  function refreshMailAlert(t, badge) {
+    fetch(ACCOUNT + '/api/mail/unread', { headers: { Authorization: 'Bearer ' + t } })
+      .then(function (r) { return r.ok ? r.json() : { unread: 0 }; })
+      .then(function (d) {
+        var unread = Math.max(0, Number(d.unread) || 0);
+        badge.classList.toggle('on', unread > 0);
+        badge.title = unread ? '읽지 않은 관리자 메일 ' + unread + '개' : '읽지 않은 관리자 메일 없음';
+        badge.setAttribute('aria-label', badge.title);
+      })
+      .catch(function () { badge.classList.remove('on'); });
+  }
+
   function mount() {
     if (document.getElementById('bnProfileBtn')) return;
     var btn = document.createElement('button');
@@ -24,6 +36,13 @@
     btn.setAttribute('aria-label', '계정 설정');
     btn.textContent = '·';
     btn.addEventListener('click', go);
+    var mail = document.createElement('button');
+    mail.id = 'bnMailAlert';
+    mail.type = 'button';
+    mail.textContent = '!';
+    mail.title = '읽지 않은 관리자 메일';
+    mail.setAttribute('aria-label', '읽지 않은 관리자 메일');
+    mail.addEventListener('click', go);
 
     var css = document.createElement('style');
     css.textContent =
@@ -34,13 +53,21 @@
       'backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.28)}' +
       '#bnProfileBtn:hover{border-color:#8b7ff0}' +
       '#bnProfileBtn img{width:100%;height:100%;object-fit:cover;display:block}' +
-      '@media print{#bnProfileBtn{display:none!important}}';
+      '#bnMailAlert{position:fixed;top:8px;right:5px;z-index:2147483001;width:18px;height:18px;' +
+      'border-radius:50%;border:2px solid #151519;background:#e86b70;color:#fff;padding:0;cursor:pointer;' +
+      'font:800 12px/1 "Segoe UI","Apple SD Gothic Neo",sans-serif;display:none;align-items:center;justify-content:center;' +
+      'box-shadow:0 2px 6px rgba(0,0,0,.35)}#bnMailAlert.on{display:flex}' +
+      '@media print{#bnProfileBtn,#bnMailAlert{display:none!important}}';
     document.head.appendChild(css);
     document.body.appendChild(btn);
+    document.body.appendChild(mail);
 
     /* 로그인 상태면 이름 첫 글자나 아바타를 보여준다 */
     var t = token();
     if (!t) { btn.textContent = '?'; return; }
+    refreshMailAlert(t, mail);
+    setInterval(function () { if (!document.hidden) refreshMailAlert(t, mail); }, 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshMailAlert(t, mail); });
     fetch(ACCOUNT + '/api/me', { headers: { Authorization: 'Bearer ' + t } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (u) {
