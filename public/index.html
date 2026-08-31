@@ -415,6 +415,7 @@ nav{display:none!important}
 .tb-div{width:1px;height:20px;background:rgba(255,255,255,.09);margin:0 3px;flex-shrink:0}
 #tbExamTitle{font-size:12px;color:rgba(255,255,255,.3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-sp{flex:1}
+.tb-overflow-group{display:contents}
 .tb-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s;flex-shrink:0;font-family:inherit;white-space:nowrap}
 .tb-btn:hover{background:rgba(255,255,255,.07);color:#fff;border-color:rgba(255,255,255,.2)}
 .tb-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
@@ -905,13 +906,28 @@ nav{display:none!important}
 @media(max-width:720px){
   /* 햄버거 버튼 */
   #tbHamBtn{display:flex!important}
-  /* 툴바 간소화 */
+  /* 툴바 간소화: 오른쪽 버튼들이 화면 밖으로 잘려서 아예 못 누르던 것을
+     "더보기"(⋯) 버튼 하나로 모아 드롭다운으로 열어보게 함 */
   .tb-div{display:none}
   #guideOpenBtn{display:none}
   #adminBtn{display:none!important}
   #navName{display:none!important}
   #adminBadge{display:none!important}
   #tbExamTitle{font-size:11px;max-width:90px}
+  #tbMoreBtn{display:flex!important;align-items:center;justify-content:center}
+  .tb-overflow-group{display:none}
+  .tb-overflow-group.open{
+    display:flex;flex-direction:column;align-items:stretch;gap:6px;
+    position:fixed;top:48px;left:0;right:0;z-index:250;
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);
+    max-height:calc(100vh - 48px);overflow-y:auto;
+  }
+  .tb-overflow-group.open .tb-div{display:block;margin:4px 0;border-top:1px solid var(--border)}
+  .tb-overflow-group.open .tb-btn{width:100%;justify-content:flex-start}
+  .tb-overflow-group.open #navUser{display:flex!important;width:100%;justify-content:space-between}
+  .tb-overflow-group.open #navName{display:inline!important}
+  .tb-overflow-group.open #adminBadge{display:inline-block!important}
   /* 모드탭 */
   #modeTabBar{height:34px;padding:0 8px}
   .mode-tab{font-size:11px;padding:0 10px;gap:5px}
@@ -998,26 +1014,29 @@ nav{display:none!important}
   <div class="tb-div"></div>
   <span id="tbExamTitle">시험지를 선택하세요</span>
   <div class="tb-sp"></div>
-  <a href="https://bytenode109.vercel.app" target="_blank" class="tb-btn tb-bytenode-link" style="text-decoration:none">🔗 bytenode가기</a>
-  <button class="tb-btn ai-btn" id="tbAiBtn" style="display:none">✨ 시험지 프롬프트 만들기</button>
-  <button class="tb-btn" id="dlPdfBtn" style="display:none">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    PDF
-  </button>
-  <button class="tb-btn" id="printPdfBtn" style="display:none">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    인쇄
-  </button>
-  <button class="tb-btn" id="tbDocxBtn" style="display:none">DOCX</button>
-  <button class="tb-btn danger" id="delExamBtn" style="display:none">삭제</button>
-  <div class="tb-div"></div>
-  <button class="tb-btn" id="guideOpenBtn" onclick="openGuide()">사용방법</button>
-  <button class="tb-btn" id="adminBtn" style="display:none" onclick="setActiveTab('admin')">관리자</button>
-  <button class="tb-btn" id="themeToggleBtn" onclick="toggleTheme()" title="화이트/다크 전환">🌙</button>
-  <div id="navUser" style="display:none;align-items:center;gap:8px;padding:0 6px">
-    <span id="navName" style="font-size:12px;color:rgba(255,255,255,.45);padding:0 2px"></span>
-    <span id="adminBadge" style="display:none;font-size:10px;background:#6c63ff;color:#fff;padding:2px 8px;border-radius:4px;font-weight:700">ADMIN</span>
-    <button class="tb-btn danger" id="logoutBtn">로그아웃</button>
+  <button id="tbMoreBtn" onclick="toggleToolbarMore()" title="더보기" style="display:none;background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;padding:6px 8px;font-size:18px;line-height:1;flex-shrink:0">⋯</button>
+  <div id="tbOverflowGroup" class="tb-overflow-group">
+    <a href="https://bytenode109.vercel.app" target="_blank" class="tb-btn tb-bytenode-link" style="text-decoration:none">🔗 bytenode가기</a>
+    <button class="tb-btn ai-btn" id="tbAiBtn" style="display:none">✨ 시험지 프롬프트 만들기</button>
+    <button class="tb-btn" id="dlPdfBtn" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      PDF
+    </button>
+    <button class="tb-btn" id="printPdfBtn" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      인쇄
+    </button>
+    <button class="tb-btn" id="tbDocxBtn" style="display:none">DOCX</button>
+    <button class="tb-btn danger" id="delExamBtn" style="display:none">삭제</button>
+    <div class="tb-div"></div>
+    <button class="tb-btn" id="guideOpenBtn" onclick="openGuide()">사용방법</button>
+    <button class="tb-btn" id="adminBtn" style="display:none" onclick="setActiveTab('admin')">관리자</button>
+    <button class="tb-btn" id="themeToggleBtn" onclick="toggleTheme()" title="화이트/다크 전환">🌙</button>
+    <div id="navUser" style="display:none;align-items:center;gap:8px;padding:0 6px">
+      <span id="navName" style="font-size:12px;color:rgba(255,255,255,.45);padding:0 2px"></span>
+      <span id="adminBadge" style="display:none;font-size:10px;background:#6c63ff;color:#fff;padding:2px 8px;border-radius:4px;font-weight:700">ADMIN</span>
+      <button class="tb-btn danger" id="logoutBtn">로그아웃</button>
+    </div>
   </div>
   <div id="navTabs" style="display:none">
     <button class="nav-tab active" data-tab="app">시험지</button>
@@ -6387,6 +6406,16 @@ if ($('canvasEmpty')) $('canvasEmpty').style.display = 'flex';
 
 /* ── 모바일 패널 제어 ── */
 function isMobile() { return window.innerWidth <= 900; }
+
+function toggleToolbarMore() {
+  $('tbOverflowGroup').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const group = $('tbOverflowGroup');
+  if (!group || !group.classList.contains('open')) return;
+  if (group.contains(e.target) && e.target.closest('.tb-btn,a')) return group.classList.remove('open');
+  if (!group.contains(e.target) && e.target.id !== 'tbMoreBtn') group.classList.remove('open');
+});
 
 function toggleMobileLeft() {
   const lp = $('leftPanel');
